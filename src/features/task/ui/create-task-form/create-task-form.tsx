@@ -1,0 +1,149 @@
+// features/task/ui/create-task-form.tsx
+import React, { useState } from 'react';
+import type { TeamMember, Task } from '@/entities/team/index'; // Добавил Task
+import './create-task-form.css';
+
+interface CreateTaskFormProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreateTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void; // 🔥 Исправил тип
+  projectId: string;
+  teamMembers: TeamMember[];
+}
+
+export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
+  isOpen,
+  onClose,
+  onCreateTask,
+  projectId,
+  teamMembers
+}) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    priority: 'medium' as 'low' | 'medium' | 'high',
+    points: 5,
+    assigneeId: '',
+    dueDate: '',
+    tags: [] as string[]
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.title.trim()) {
+      onCreateTask({
+        ...formData,
+        projectId,
+        status: 'todo',
+        tags: formData.tags
+      });
+      setFormData({
+        title: '',
+        description: '',
+        priority: 'medium',
+        points: 5,
+        assigneeId: '',
+        dueDate: '',
+        tags: []
+      });
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h2>Создать задачу</h2>
+          <button className="close-button" onClick={onClose}>×</button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="task-form">
+          <div className="form-group">
+            <label>Название задачи *</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="Что нужно сделать?"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Описание</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Подробное описание задачи..."
+              rows={3}
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Приоритет</label>
+              <select
+                value={formData.priority}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
+              >
+                <option value="low">🟢 Низкий</option>
+                <option value="medium">🟡 Средний</option>
+                <option value="high">🔴 Высокий</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Баллы</label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={formData.points}
+                onChange={(e) => setFormData(prev => ({ ...prev, points: parseInt(e.target.value) }))}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Исполнитель</label>
+              <select
+                value={formData.assigneeId}
+                onChange={(e) => setFormData(prev => ({ ...prev, assigneeId: e.target.value }))}
+              >
+                <option value="">Не назначен</option>
+                {teamMembers.map(member => (
+                  <option key={member.id} value={member.userId}>
+                    {member.username}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Срок выполнения</label>
+              <input
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button type="button" onClick={onClose} className="btn-secondary">
+              Отмена
+            </button>
+            <button type="submit" className="btn-primary" disabled={!formData.title.trim()}>
+              Создать задачу
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};

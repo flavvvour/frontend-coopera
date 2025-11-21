@@ -1,0 +1,25 @@
+.header {
+    background: white;
+    border-bottom: 1px solid #e9ecef;
+    padding: 20px 0;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.header-left h1 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+}
+
+.header-left p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}

@@ -1,0 +1,211 @@
+/* features/task/kanban-board.css */
+.kanban-board {
+    width: 100%;
+  }
+  
+  .kanban-actions {
+    margin-bottom: 1.5rem;
+  }
+  
+  .kanban-columns {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    min-height: 600px;
+  }
+  
+  .kanban-column {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1rem;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .column-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid;
+    border-left: 4px solid;
+  }
+  
+  .column-header h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .column-count {
+    background: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+  }
+  
+  .column-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 200px;
+  }
+  
+  /* Карточка задачи */
+  .task-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: grab;
+    transition: all 0.2s;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .task-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+  }
+  
+  .task-card:active {
+    cursor: grabbing;
+  }
+  
+  .task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+  
+  .task-priority[data-priority="high"] {
+    color: #ef4444;
+  }
+  
+  .task-priority[data-priority="medium"] {
+    color: #f59e0b;
+  }
+  
+  .task-priority[data-priority="low"] {
+    color: #10b981;
+  }
+  
+  .task-points {
+    background: #3b82f6;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  
+  .task-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.4;
+  }
+  
+  .task-description {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .task-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .task-assignee {
+    color: #6b7280;
+    font-weight: 500;
+  }
+  
+  .task-due {
+    color: #ef4444;
+    font-weight: 500;
+  }
+  
+  .task-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .tag {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+  
+  /* Цвета колонок */
+  .kanban-column:nth-child(1) .column-header {
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+  
+  .kanban-column:nth-child(2) .column-header {
+    border-color: #3b82f6;
+    color: #3b82f6;
+  }
+  
+  .kanban-column:nth-child(3) .column-header {
+    border-color: #f59e0b;
+    color: #f59e0b;
+  }
+  
+  .kanban-column:nth-child(4) .column-header {
+    border-color: #10b981;
+    color: #10b981;
+  }
+  
+  /* Адаптивность */
+  @media (max-width: 1024px) {
+    .kanban-columns {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .kanban-columns {
+      grid-template-columns: 1fr;
+    }
+    
+    .task-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+  }
+  
+  /* Стили для drag and drop */
+  .kanban-column.drag-over {
+    background: #e0f2fe;
+    border: 2px dashed #3b82f6;
+  }
+  
+  .task-card.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+  }
