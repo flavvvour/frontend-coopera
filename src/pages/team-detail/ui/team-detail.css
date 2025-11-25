@@ -1,21 +1,252 @@
 /* pages/team-detail-page.css */
 .team-detail-page {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-  
-  /* Хедер команды */
-  .team-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .team-info h1 {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Кнопка "Назад" */
+.back-button {
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.back-button:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  transform: translateX(-2px);
+}
+
+/* Баннер команды */
+.team-banner {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.team-cover {
+  position: relative;
+  height: 150px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Редактируемые поля */
+.editable-title, .editable-description {
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 6px;
+  padding: 6px 12px;
+  margin: -6px -12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.editable-title .edit-icon,
+.editable-description .edit-icon {
+  opacity: 0;
+  transition: opacity 0.2s;
+  color: #667eea;
+  flex-shrink: 0;
+}
+
+.editable-title:hover, .editable-description:hover {
+  background: rgba(102, 126, 234, 0.08);
+}
+
+.editable-title:hover .edit-icon,
+.editable-description:hover .edit-icon {
+  opacity: 1;
+}
+
+.edit-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  width: 100%;
+}
+
+.edit-input {
+  flex: 1;
+  padding: 0.625rem 0.875rem;
+  border: 2px solid #667eea;
+  border-radius: 10px;
+  font-size: inherit;
+  font-family: inherit;
+  outline: none;
+  background: white;
+  transition: all 0.2s;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.edit-input:focus {
+  border-color: #5568d3;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+.edit-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.edit-description {
+  font-size: 1rem;
+  color: #6b7280;
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.5;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 2px;
+}
+
+.btn-save, .btn-cancel {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-save {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.btn-save:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+}
+
+.btn-save:active {
+  transform: translateY(0);
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #6b7280;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn-cancel:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+.btn-cancel:active {
+  transform: translateY(0);
+}
+
+.cover-placeholder {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Контейнер для кнопок */
+.banner-actions {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Общий стиль для обеих кнопок */
+.banner-btn {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.banner-btn .btn-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+}
+
+.banner-btn:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.banner-btn:hover .btn-icon {
+  opacity: 1;
+}
+
+.team-info-banner {
+  padding: 2rem;
+}
+
+.team-main-info h1 {
+  margin: 0 0 0.75rem 0;
+  font-size: 2.25rem;
+  color: #1f2937;
+}
+
+.team-main-info p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Хедер команды */
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}  .team-info h1 {
     margin: 0 0 0.5rem 0;
     font-size: 2rem;
     color: #1f2937;
@@ -129,46 +360,141 @@
     color: #3b82f6;
   }
   
-  /* Секция канбана */
-  .kanban-section {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e5e7eb;
-  }
-  
-  .kanban-header {
-    margin-bottom: 1.5rem;
-  }
-  
-  .kanban-header h3 {
-    margin: 0 0 0.5rem 0;
-    color: #1f2937;
-    font-size: 1.25rem;
-  }
-  
-  .kanban-header p {
-    margin: 0 0 1rem 0;
-    color: #6b7280;
-  }
-  
-  .create-task-btn {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  
-  .create-task-btn:hover {
-    background: #2563eb;
-  }
-  
-  .no-project {
+/* Секция канбана */
+.kanban-section {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  border: none;
+}
+
+.project-header-section {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.project-header-content h3 {
+  margin: 0 0 0.75rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+}
+
+.project-description-view {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.project-description-view p {
+  margin: 0;
+  color: #6b7280;
+  flex: 1;
+  line-height: 1.5;
+}
+
+.edit-description-btn {
+  background: #f3f4f6;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.edit-description-btn:hover {
+  background: #e5e7eb;
+  transform: scale(1.05);
+}
+
+.project-description-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.description-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #3b82f6;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.description-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.save-btn,
+.cancel-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.save-btn {
+  background: #10b981;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.cancel-btn {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.cancel-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.kanban-header {
+  margin-bottom: 1.5rem;
+}
+
+.kanban-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: #1f2937;
+  font-size: 1.25rem;
+}
+
+.kanban-header p {
+  margin: 0 0 1rem 0;
+  color: #6b7280;
+}
+
+.create-task-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.create-task-btn:hover {
+  background: #2563eb;
+}  .no-project {
     text-align: center;
     padding: 3rem 2rem;
     background: white;

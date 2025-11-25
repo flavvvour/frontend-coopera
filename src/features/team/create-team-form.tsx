@@ -1,6 +1,5 @@
 // features/team/create-team-form.tsx
 import React, { useState } from 'react';
-import { useTeamManagement } from './model/use-team-management';
 import './create-team-form.css';
 
 interface CreateTeamFormProps {
@@ -13,49 +12,29 @@ interface CreateTeamFormProps {
 export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({
   isOpen,
   onClose,
-  onCreateTeam
+  onCreateTeam,
+  isLoading: externalLoading
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { createTeam } = useTeamManagement(); // ← ДОБАВЬТЕ ХУК
 
-  const handleSubmit = async (e: React.FormEvent) => { // ← СДЕЛАЙТЕ ASYNC
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    if (name.trim()) {
-      setIsLoading(true);
-      
-      try {
-        console.log('🔄 Creating team...');
-        
-        // ← ВЫЗОВ АПИ ДОБАВЬТЕ ЗДЕСЬ
-        const result = await createTeam({
-          name: name.trim(),
-          description: description.trim(),
-          userId: 1 // ← временно, нужно получить ID текущего пользователя
-        });
-        
-        console.log('✅ Team created successfully:', result);
-        
-        // Вызываем колбэк родительского компонента
-        onCreateTeam({
-          name: name.trim(),
-          description: description.trim()
-        });
-        
-        // Сбрасываем форму
-        setName('');
-        setDescription('');
-        onClose();
-        
-      } catch (error) {
-        console.error('❌ Failed to create team:', error);
-      } finally {
-        setIsLoading(false);
-      }
+    if (!name.trim() || externalLoading) {
+      return;
     }
+    
+    // Вызываем только callback родителя - он сам создаст команду
+    onCreateTeam({
+      name: name.trim(),
+      description: description.trim()
+    });
+    
+    // Сбрасываем форму
+    setName('');
+    setDescription('');
   };
 
   if (!isOpen) return null;
@@ -78,7 +57,7 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({
               onChange={(e) => setName(e.target.value)}
               placeholder="Например: Разработка фронтенда"
               required
-              disabled={isLoading} // ← БЛОКИРУЕМ ПРИ ЗАГРУЗКЕ
+              disabled={externalLoading}
             />
           </div>
           
@@ -90,7 +69,7 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Опишите цель команды..."
               rows={4}
-              disabled={isLoading} // ← БЛОКИРУЕМ ПРИ ЗАГРУЗКЕ
+              disabled={externalLoading}
             />
           </div>
           
@@ -99,16 +78,16 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({
               type="button" 
               onClick={onClose} 
               className="btn-secondary"
-              disabled={isLoading} // ← БЛОКИРУЕМ ПРИ ЗАГРУЗКЕ
+              disabled={externalLoading}
             >
               Отмена
             </button>
             <button 
               type="submit" 
               className="btn-primary" 
-              disabled={!name.trim() || isLoading} // ← БЛОКИРУЕМ ПРИ ЗАГРУЗКЕ
+              disabled={!name.trim() || externalLoading}
             >
-              {isLoading ? 'Создание...' : 'Создать команду'} {/* ← ИНДИКАТОР ЗАГРУЗКИ */}
+              {externalLoading ? 'Создание...' : 'Создать команду'}
             </button>
           </div>
         </form>

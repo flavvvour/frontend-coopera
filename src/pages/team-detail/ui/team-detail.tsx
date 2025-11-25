@@ -1,7 +1,36 @@
-// pages/team-detail-page.tsx
+/**
+ * Team Detail Page (FSD: pages/team-detail)
+ * 
+ * IMPLEMENTED:
+ * - Team banner with cover image upload and cropping (16:4 aspect ratio)
+ * - Inline editing for team name and description
+ * - Drag-and-drop Kanban board with 4 columns (todo, in-progress, review, done)
+ * - Task creation with backend integration (POST /tasks/)
+ * - Task status updates via drag-and-drop (PUT /tasks/)
+ * - Task card with points, assignee, and status
+ * - Back navigation to teams list
+ * 
+ * FUTURE:
+ * - Implement GET /tasks/?team_id= endpoint to load tasks from backend
+ * - Implement PUT /teams/?team_id= to persist team name/description changes
+ * - Save cover image to backend storage
+ * - Add member management (invite, remove, change roles)
+ * - Task assignment to team members
+ * - Task filtering and search
+ * - Task comments and activity log
+ * - Real-time collaboration via WebSockets
+ * - Replace hardcoded user_id with actual authentication
+ */
+
 import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { CreateTaskForm, KanbanBoard } from '@/features/task';
-import type { Team, Project, Task } from '@/entities/team/index';
+import { ImageCropModal } from '@/features/team/image-crop-modal';
+import { apiClient } from '@/shared/api';
+import { useUserStore } from '@/features/auth-by-telegram';
+import type { Team, Task } from '@/entities/team/index';
+import changeIcon from '../../../assets/change-logo.svg';
+import folderIcon from '../../../assets/folder-logo.svg';
 import './team-detail.css';
 
 // Mock данные для демонстрации
@@ -58,39 +87,155 @@ const mockTeam: Team = {
 };
 
 export const TeamDetail: React.FC = () => {
+  const navigate = useNavigate();
+  const { teamId } = useParams<{ teamId: string }>();
+  const { user } = useUserStore();
   const [team, setTeam] = useState<Team>(mockTeam);
-  const [activeProject, setActiveProject] = useState<Project | null>(team.projects[0] || null);
-  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false); // Исправил на CreateTask
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string>('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [editedName, setEditedName] = useState(team.name);
+  const [editedDescription, setEditedDescription] = useState(team.description);
 
-  // Если нужно использовать teamId для загрузки данных
-  // useEffect(() => {
-  //   if (teamId) {
-  //     // Загрузка данных команды по ID
-  //     loadTeamData(teamId);
-  //   }
-  // }, [teamId]);
+  // Вычисляем activeProject динамически из team.projects
+  const activeProject = team.projects[0] || null;
 
-  const handleCreateProject = (projectData: { name: string; description: string }) => {
-    const newProject: Project = {
-      id: Date.now().toString(),
-      name: projectData.name,
-      description: projectData.description,
-      teamId: team.id,
-      createdAt: new Date().toISOString(),
-      tasks: []
+  // Загружаем задачи с сервера при монтировании компонента
+  React.useEffect(() => {
+    const loadTeamTasks = async () => {
+      if (!teamId) return;
+      
+      try {
+        const tasksData = await apiClient.getTasks(parseInt(teamId));
+        
+        // Маппинг статусов бэкенда на фронтенд
+        const mapStatus = (backendStatus: string): Task['status'] => {
+          const statusMap: Record<string, Task['status']> = {
+            'open': 'todo',
+            'assigned': 'in-progress',
+            'completed': 'done',
+            'archived': 'done',
+            // Legacy поддержка старых статусов
+            'in_progress': 'in-progress',
+            'review': 'review',
+            'done': 'done'
+          };
+          return statusMap[backendStatus] || 'todo';
+        };
+        
+        // Преобразуем данные с бэкенда в формат фронтенда
+        const tasks: Task[] = (tasksData || []).map((task: {
+          id: number;
+          team_id?: number;
+          title: string;
+          description?: string;
+          status?: string;
+          priority?: string;
+          points?: number;
+          order?: number;
+          assignee_id?: number;
+          assignee_name?: string;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: number;
+        }) => {
+          return {
+            id: task.id.toString(),
+            title: task.title,
+            description: task.description || '',
+            status: mapStatus(task.status || 'open'),
+            priority: (task.priority as Task['priority']) || 'medium',
+            points: task.points || 0,
+            order: task.order,
+            assigneeId: task.assignee_id?.toString() || '',
+            assigneeName: task.assignee_name || '',
+            createdAt: task.created_at || new Date().toISOString(),
+            updatedAt: task.updated_at || new Date().toISOString(),
+            projectId: activeProject?.id || '1',
+            tags: []
+          };
+        });
+        
+        setTeam(prev => ({
+          ...prev,
+          projects: prev.projects.map((project, index) => 
+            index === 0 ? { ...project, tasks } : project
+          )
+        }));
+      } catch (error) {
+        console.error('Failed to load tasks:', error);
+      }
     };
 
-    setTeam(prev => ({
-      ...prev,
-      projects: [...prev.projects, newProject]
-    }));
+    loadTeamTasks();
+  }, [teamId, activeProject?.id]);
 
-    setActiveProject(newProject);
+  const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageSrc = e.target?.result as string;
+        setTempImageSrc(imageSrc);
+        setIsCropModalOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
+  const handleCropComplete = (croppedImage: string) => {
+    setCoverImage(croppedImage);
+  };
+
+  const handleSaveName = () => {
+    if (editedName.trim()) {
+      setTeam(prev => ({ ...prev, name: editedName.trim() }));
+      setIsEditingName(false);
+      // FUTURE: Implement PUT /teams/?team_id= endpoint to update team name
+    }
+  };
+
+  const handleSaveDescription = () => {
+    setTeam(prev => ({ ...prev, description: editedDescription.trim() }));
+    setIsEditingDescription(false);
+    // FUTURE: Implement PUT /teams/?team_id= endpoint to update team description
+  };
+
+  const handleCancelEditName = () => {
+    setEditedName(team.name);
+    setIsEditingName(false);
+  };
+
+  const handleCancelEditDescription = () => {
+    setEditedDescription(team.description);
+    setIsEditingDescription(false);
+  };
+
+  const handleShareTeam = () => {
+    const shareUrl = window.location.href;
+    navigator.clipboard.writeText(shareUrl);
+    alert('Ссылка на команду скопирована в буфер обмена!');
+  };
+
+  const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
     if (!activeProject) return;
 
+    // Маппинг статусов фронтенда на бэкенд
+    const mapStatusToBackend = (frontendStatus?: Task['status']): string => {
+      if (!frontendStatus) return 'open';
+      const statusMap: Record<Task['status'], string> = {
+        'todo': 'open',
+        'in-progress': 'assigned',
+        'review': 'assigned',      // review тоже mapped на assigned
+        'done': 'completed'
+      };
+      return statusMap[frontendStatus] || 'open';
+    };
+
+    // Оптимистичное обновление UI
     setTeam(prev => ({
       ...prev,
       projects: prev.projects.map(project => 
@@ -104,103 +249,199 @@ export const TeamDetail: React.FC = () => {
           : project
       )
     }));
+
+    // Отправляем на бэкенд с правильным форматом статуса
+    try {
+      const userId = user?.id || 1;
+      const backendStatus = mapStatusToBackend(updates.status);
+      
+      // Формируем payload только с теми полями, которые были изменены
+      const payload: {
+        task_id?: number;
+        status?: string;
+        title?: string;
+        description?: string;
+        points?: number;
+        order?: number;
+        current_user_id: number;
+      } = {
+        task_id: parseInt(taskId),
+        current_user_id: userId
+      };
+      
+      if (updates.status) payload.status = backendStatus;
+      if (updates.title !== undefined) payload.title = updates.title;
+      if (updates.description !== undefined) payload.description = updates.description;
+      if (updates.points !== undefined) payload.points = updates.points;
+      if (updates.order !== undefined) payload.order = updates.order;
+      
+      await apiClient.updateTask(parseInt(taskId), payload);
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const axiosError = error as any;
+      
+      // Показываем детали ошибки пользователю
+      const errorMessage = axiosError.response?.data?.error || 'Неизвестная ошибка';
+      const errorDetails = axiosError.response?.data?.details?.join(', ') || '';
+      alert(`Не удалось обновить задачу:\n${errorMessage}\n${errorDetails}`);
+    }
   };
 
-  const handleCreateTask = (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!activeProject) return;
+  const handleCreateTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!activeProject || !teamId) return;
 
-    const newTask: Task = {
-      ...taskData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const userId = parseInt((taskData as any).userId) || user?.id || 1;
+      
+      const createdTask = await apiClient.createTask({
+        title: taskData.title,
+        description: taskData.description || '',
+        team_id: parseInt(teamId),
+        points: taskData.points || 0,
+        current_user_id: userId
+      });
 
-    setTeam(prev => ({
-      ...prev,
-      projects: prev.projects.map(project =>
-        project.id === activeProject.id
-          ? { ...project, tasks: [...project.tasks, newTask] }
-          : project
-      )
-    }));
+      // Добавляем задачу в локальное состояние
+      const newTask: Task = {
+        ...taskData,
+        id: createdTask.id?.toString() || Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      setTeam(prev => ({
+        ...prev,
+        projects: prev.projects.map(project =>
+          project.id === activeProject.id
+            ? { ...project, tasks: [...project.tasks, newTask] }
+            : project
+        )
+      }));
+    } catch (error) {
+      console.error('Failed to create task:', error);
+      alert('Не удалось создать задачу. Попробуйте еще раз.');
+    }
   };
 
   return (
     <div className="team-detail-page">
-      {/* Хедер команды */}
-      <div className="team-header">
-        <div className="team-info">
-          <h1>{team.name}</h1>
-          <p>{team.description}</p>
-        </div>
-        <div className="team-stats">
-          <div className="stat">
-            <span className="stat-value">{team.members.length}</span>
-            <span className="stat-label">участников</span>
-          </div>
-          <div className="stat">
-            <span className="stat-value">{team.projects.length}</span>
-            <span className="stat-label">проектов</span>
-          </div>
-        </div>
-      </div>
+      {/* Кнопка "Назад" */}
+      <button className="back-button" onClick={() => navigate('/dashboard/teams')}>
+        ← Назад к командам
+      </button>
 
-      {/* Навигация по проектам */}
-      <div className="projects-section">
-        <div className="projects-header">
-          <h2>📁 Проекты команды</h2>
-          <button 
-            className="create-project-btn"
-            onClick={() => handleCreateProject({ 
-              name: `Новый проект ${team.projects.length + 1}`, 
-              description: 'Описание нового проекта' 
-            })}
-          >
-            + Новый проект
-          </button>
-        </div>
-
-        <div className="projects-tabs">
-          {team.projects.map(project => (
-            <button
-              key={project.id}
-              className={`project-tab ${activeProject?.id === project.id ? 'active' : ''}`}
-              onClick={() => setActiveProject(project)}
-            >
-              {project.name}
-              <span className="task-count">{project.tasks.length}</span>
+      {/* Баннер команды с обложкой */}
+      <div className="team-banner">
+        <div className="team-cover" style={{ backgroundImage: coverImage ? `url(${coverImage})` : 'none' }}>
+          {!coverImage && <div className="cover-placeholder">Загрузите обложку команды</div>}
+          <input
+            type="file"
+            id="cover-upload"
+            accept="image/*"
+            onChange={handleCoverImageUpload}
+            style={{ display: 'none' }}
+          />
+          <div className="banner-actions">
+            <label htmlFor="cover-upload" className="banner-btn upload-btn">
+              <img src={changeIcon} alt="change" className="btn-icon" />
+              Изменить обложку
+            </label>
+            <button className="banner-btn share-btn" onClick={handleShareTeam}>
+              <img src={folderIcon} alt="share" className="btn-icon" />
+              Поделиться
             </button>
-          ))}
+          </div>
         </div>
-
-        {/* Канбан-доска для активного проекта */}
-        {activeProject ? (
-          <div className="kanban-section">
-            <div className="kanban-header">
-              <h3>🎯 {activeProject.name} - Канбан доска</h3>
-              <p>{activeProject.description}</p>
-              <button 
-                className="create-task-btn"
-                onClick={() => setIsCreateTaskOpen(true)}
-              >
-                + Добавить задачу
-              </button>
-            </div>
-            <KanbanBoard
-              tasks={activeProject.tasks}
-              onUpdateTask={handleUpdateTask}
-              onCreateTask={handleCreateTask}
-              projectId={activeProject.id}
-              teamMembers={team.members}
-            />
+        
+        <div className="team-info-banner">
+          <div className="team-main-info">
+            {isEditingName ? (
+              <div className="edit-field">
+                <input
+                  type="text"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveName();
+                    if (e.key === 'Escape') handleCancelEditName();
+                  }}
+                  autoFocus
+                  className="edit-input edit-title"
+                />
+                <div className="edit-actions">
+                  <button onClick={handleSaveName} className="btn-save" aria-label="Сохранить название">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <button onClick={handleCancelEditName} className="btn-cancel" aria-label="Отменить редактирование">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <h1 onClick={() => { setEditedName(team.name); setIsEditingName(true); }} className="editable-title">
+                {team.name}
+                <svg className="edit-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12.75 2.25L15.75 5.25L5.25 15.75H2.25V12.75L12.75 2.25Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </h1>
+            )}
+            
+            {isEditingDescription ? (
+              <div className="edit-field">
+                <textarea
+                  value={editedDescription}
+                  onChange={(e) => setEditedDescription(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') handleCancelEditDescription();
+                  }}
+                  autoFocus
+                  className="edit-input edit-description"
+                  rows={2}
+                />
+                <div className="edit-actions">
+                  <button onClick={handleSaveDescription} className="btn-save" aria-label="Сохранить описание">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  <button onClick={handleCancelEditDescription} className="btn-cancel" aria-label="Отменить редактирование">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p onClick={() => { setEditedDescription(team.description); setIsEditingDescription(true); }} className="editable-description">
+                {team.description}
+                <svg className="edit-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11.5 2L14 4.5L4.5 14H2V11.5L11.5 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </p>
+            )}
           </div>
-        ) : (
-          <div className="no-project">
-            <p>Выберите проект или создайте новый чтобы начать работу с задачами</p>
-          </div>
-        )}
+        </div>
       </div>
+
+      {/* Канбан-доска */}
+      {activeProject && (
+        <div className="kanban-section">
+          <KanbanBoard
+            tasks={activeProject.tasks}
+            onUpdateTask={handleUpdateTask}
+            onCreateTask={handleCreateTask}
+            projectId={activeProject.id}
+            teamMembers={team.members}
+          />
+        </div>
+      )}
 
       {/* Модалка создания задачи */}
       <CreateTaskForm
@@ -209,6 +450,14 @@ export const TeamDetail: React.FC = () => {
         onCreateTask={handleCreateTask}
         projectId={activeProject?.id || ''}
         teamMembers={team.members}
+      />
+
+      {/* Модалка обрезки изображения */}
+      <ImageCropModal
+        isOpen={isCropModalOpen}
+        imageSrc={tempImageSrc}
+        onClose={() => setIsCropModalOpen(false)}
+        onCropComplete={handleCropComplete}
       />
     </div>
   );

@@ -3,7 +3,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Sidebar } from '@/widgets/sidebar';
 import { Teams } from '@/pages/teams';
-import { KanbanBoard } from '@/features/task';
+import { TeamDetail } from '@/pages/team-detail';
 import './dashboard-page.css';
 
 export const DashboardPage: React.FC = () => {
@@ -13,22 +13,20 @@ export const DashboardPage: React.FC = () => {
       
       <main className="dashboard-main">
         <Routes>
-          {/* Эти маршруты будут относительно /dashboard/ */}
-          <Route index element={<DashboardHome />} /> {/* /dashboard */}
-          <Route path="tasks" element={<TasksSection />} /> {/* /dashboard/tasks */}
-          <Route path="teams/*" element={<TeamsSection />} /> {/* /dashboard/teams */}
-          <Route path="settings" element={<SettingsSection />} /> {/* /dashboard/settings */}
+          <Route index element={<DashboardHome />} />
+          <Route path="teams" element={<TeamsSection />} />
+          <Route path="teams/:teamId" element={<TeamDetail />} />
+          <Route path="settings" element={<SettingsSection />} />
         </Routes>
       </main>
     </div>
   );
 };
 
-// Компоненты секций остаются без изменений
 const DashboardHome: React.FC = () => (
   <div className="dashboard-content">
     <div className="content-header">
-      <h1>📊 Обзор проектов</h1>
+      <h1>Обзор проектов</h1>
       <p>Мониторинг ваших задач и прогресса</p>
     </div>
     
@@ -65,28 +63,15 @@ const DashboardHome: React.FC = () => (
   </div>
 );
 
-const TasksSection: React.FC = () => (
-  <div className="dashboard-content">
-    <KanbanBoard 
-      tasks={[]} 
-      onUpdateTask={() => {}} 
-      onCreateTask={() => {}} 
-      projectId="1" 
-      teamMembers={[]} 
-    />
-  </div>
-);
-
 const TeamsSection: React.FC = () => (
   <div className="dashboard-content">
     <Teams />
   </div>
 );
 
-
 const SettingsSection: React.FC = () => (
   <div className="dashboard-content">
-    <h1>⚙️ Настройки</h1>
+    <h1>Настройки</h1>
     <p>Настройки профиля и системы</p>
   </div>
 );

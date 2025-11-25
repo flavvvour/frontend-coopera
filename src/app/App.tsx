@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LandingPage } from '@/pages/landing';
 import { DashboardPage } from '@/pages/dashboard';
 import { LoginPage } from '@/pages/login';
-import { TeamDetail } from '@/pages/team-detail';
 
 export const App: React.FC = () => {
   return (
@@ -12,8 +11,7 @@ export const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="login" element={<LoginPage />} />
-        <Route path="/dashboard/*" element={<DashboardPage />} /> {/* ← ДОБАВЬТЕ /* */}
-        <Route path="/team/:teamId" element={<TeamDetail />} />
+        <Route path="/dashboard/*" element={<DashboardPage />} />
       </Routes>
     </Router>
   );

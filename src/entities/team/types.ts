@@ -60,6 +60,7 @@ export interface TeamMemberApi {
     status: 'todo' | 'in-progress' | 'done' | 'review';
     priority: 'low' | 'medium' | 'high';
     points: number;
+    order?: number;
     assigneeId?: string;
     assigneeName?: string;
     createdAt: string;
