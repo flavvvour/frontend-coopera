@@ -68,118 +68,139 @@
   .teams-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1.5rem;
+    gap: 2rem;
   }
   
   .team-card {
     background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+    border: 1px solid transparent;
+  }
+  
+  .team-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #3b83f680;
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
   
   .team-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px #3b83f633;
+    border-color: rgba(102, 126, 234, 0.2);
   }
   
-  .team-header {
+  .team-card:hover::before {
+    opacity: 1;
+  }
+  
+  .team-card-header {
+    background: #f8f9fa;
+    padding: 1.5rem;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
+    align-items: center;
+    border-bottom: 1px solid #e9ecef;
   }
   
-  .team-header h3 {
-    margin: 0;
-    color: #1f2937;
-    font-size: 1.25rem;
-    flex: 1;
-    margin-right: 1rem;
+  .team-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    background: #3b83f680;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  }
+  
+  .team-icon {
+    width: 28px;
+    height: 28px;
+    color: white;
   }
   
   .delete-team-btn {
-    background: none;
-    border: none;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
     color: #ef4444;
     cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 4px;
-    font-size: 1.25rem;
-    transition: background 0.2s;
+    padding: 0.5rem;
+    border-radius: 10px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+  
+  .delete-team-btn svg {
+    width: 18px;
+    height: 18px;
   }
   
   .delete-team-btn:hover {
-    background: #fef2f2;
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+    transform: scale(1.05);
+  }
+  
+  .team-content {
+    padding: 1.5rem;
+  }
+  
+  .team-name {
+    margin: 0 0 0.5rem 0;
+    color: #1f2937;
+    font-size: 1.25rem;
+    font-weight: 600;
   }
   
   .team-description {
     color: #6b7280;
-    margin: 0 0 1.5rem 0;
-    line-height: 1.5;
+    margin: 0;
+    line-height: 1.6;
+    font-size: 0.95rem;
   }
   
-  .team-stats {
+  .team-footer {
+    padding: 1rem 1.5rem;
+    background: #f9fafb;
     display: flex;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #f3f4f6;
-  }
-  
-  .stat {
-    display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
+    border-top: 1px solid #e5e7eb;
   }
   
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1f2937;
-  }
-  
-  .stat-label {
-    font-size: 0.875rem;
-    color: #6b7280;
-  }
-  
-  .team-actions {
+  .team-meta {
     display: flex;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
   }
   
-  .btn-outline {
-    background: white;
-    color: #3b82f6;
-    border: 1px solid #3b82f6;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s;
-    flex: 1;
+  .meta-icon {
+    width: 16px;
+    height: 16px;
+    color: #9ca3af;
   }
   
-  .btn-outline:hover {
-    background: #3b82f6;
-    color: white;
-  }
-  
-  .btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background 0.2s;
-  }
-  
-  .btn-secondary:hover {
-    background: #e5e7eb;
+  .team-date {
+    color: #9ca3af;
+    font-size: 0.8rem;
   }
   
   /* Адаптивность */

@@ -1,9 +1,30 @@
 // pages/teams-page.tsx
+/**
+ * Teams Page (FSD: pages/teams)
+ * 
+ * IMPLEMENTED:
+ * - Display grid of user's teams with modern card design
+ * - Team creation via modal form
+ * - Team deletion with confirmation dialog
+ * - Integration with backend API (GET, POST, DELETE /teams/)
+ * - Backend data transformation (PascalCase → camelCase)
+ * - Loading states and error handling
+ * - Empty state with call-to-action
+ * 
+ * FUTURE:
+ * - Replace hardcoded user_id with actual authentication
+ * - Add team search and filtering
+ * - Implement team editing (name, description)
+ * - Add pagination for large team lists
+ * - Team sorting options (by name, date, members)
+ * - Team invitation system
+ */
+
 import React, { useState, useEffect } from 'react';
 import { CreateTeamForm } from '@/features/team/create-team-form';
 import { apiClient } from '@/shared/api';
+import { useUserStore } from '@/features/auth-by-telegram';
 import './teams.css';
-import type { ApiTeam, CreateTeamResponse } from '@/entities/team/types';
 
 interface Team {
   id: string;
@@ -14,76 +35,76 @@ interface Team {
   createdAt: string;
 }
 
+// Тип для ответа от бэкенда (с заглавными буквами)
+interface BackendTeam {
+  ID: number;
+  Name: string;
+  CreatedAt: string;
+  CreatedBy: number;
+}
+
 export const Teams: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-
-  useEffect(() => {
-    loadTeamsFromAPI();
-  }, []);
+  const { user } = useUserStore();
 
   const loadTeamsFromAPI = async () => {
     try {
       setIsLoading(true);
-      console.log('🔄 Loading teams from API...');
       
-      const apiTeams: ApiTeam[] = await apiClient.getTeams();
-      console.log('✅ RAW API RESPONSE:', apiTeams);
+      // Передаем user_id для получения команд пользователя
+      const userId = user?.id || 1; // FUTURE: Replace hardcoded fallback with proper auth
+      const backendTeams = await apiClient.getTeams(userId) as unknown as BackendTeam[];
       
-      // Проверяем, есть ли команда с id: 26 в сыром ответе
-      const team26 = apiTeams.find((team: ApiTeam) => team.id === 26);
-      console.log('🔍 Team 26 in raw response:', team26);
+      if (!Array.isArray(backendTeams)) {
+        setTeams([]);
+        return;
+      }
       
-      // Преобразуем данные из API в наш формат
-      const transformedTeams: Team[] = apiTeams.map((team: ApiTeam) => ({
-        id: team.id.toString(),
-        name: team.name,
-        description: team.description || '',
-        memberCount: team.members?.length || 1,
+      // Преобразуем данные из формата бэкенда в наш формат
+      const transformedTeams: Team[] = backendTeams.map((team: BackendTeam) => ({
+        id: team.ID.toString(),
+        name: team.Name,
+        description: '',
+        memberCount: 1,
         projectCount: 0,
-        createdAt: team.created_at
+        createdAt: team.CreatedAt
       }));
-      
-      console.log('📋 Transformed teams:', transformedTeams);
-      
-      // Ищем команду 26 в преобразованном массиве
-      const transformedTeam26 = transformedTeams.find(team => team.id === "26");
-      console.log('🔍 Team 26 in transformed teams:', transformedTeam26);
       
       setTeams(transformedTeams);
       
     } catch (error) {
-      console.error('❌ Failed to load teams from API:', error);
-      alert('Не удалось загрузить список команд');
+      console.error('Failed to load teams:', error);
+      setTeams([]);
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadTeamsFromAPI();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   const handleCreateTeam = async (teamData: { name: string; description: string }) => {
-    if (isCreating) {
-      console.log('⚠️ Creation already in progress');
-      return;
-    }
+    if (isCreating) return;
     
     try {
       setIsCreating(true);
-      console.log('🔄 Creating team via API...', teamData);
       
-      const result: CreateTeamResponse = await apiClient.createTeam({
+      await apiClient.createTeam({
         name: teamData.name,
         description: teamData.description,
-        user_id: 2
+        user_id: 1
       });
       
-      console.log('✅ Team created via API:', result);
       setIsCreateModalOpen(false);
       await loadTeamsFromAPI();
       
     } catch (error) {
-      console.error('❌ Failed to create team:', error);
+      console.error('Failed to create team:', error);
       
       let errorMessage = 'Неизвестная ошибка';
       if (error instanceof Error) {
@@ -98,13 +119,48 @@ export const Teams: React.FC = () => {
     }
   };
 
-  const handleDeleteTeam = (teamId: string) => {
-    // TODO: Добавить вызов API для удаления
-    setTeams(prev => prev.filter(team => team.id !== teamId));
+  const handleDeleteTeam = async (teamId: string) => {
+    // Подтверждение удаления
+    const team = teams.find(t => t.id === teamId);
+    if (!team) return;
+    
+    const confirmed = window.confirm(
+      `Вы уверены, что хотите удалить команду "${team.name}"?\n\nЭто действие нельзя отменить.`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      await apiClient.deleteTeam(
+        parseInt(teamId),
+        1
+      );
+      
+      setTeams(prev => prev.filter(team => team.id !== teamId));
+      
+    } catch (error) {
+      console.error('Failed to delete team:', error);
+      
+      let errorMessage = 'Не удалось удалить команду';
+      if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+        
+        // Проверяем различные типы ошибок
+        if (msg.includes('403') || msg.includes('forbidden') || msg.includes('permission')) {
+          errorMessage = '❌ У вас нет прав на удаление этой команды.\n\nТолько владелец команды (роль Manager) может её удалить.';
+        } else if (msg.includes('404') || msg.includes('not found')) {
+          errorMessage = '❌ Команда не найдена. Возможно, она уже удалена.';
+        } else {
+          errorMessage = `❌ Ошибка: ${error.message}`;
+        }
+      }
+      
+      alert(errorMessage);
+    }
   };
 
   const handleOpenTeam = (teamId: string) => {
-    window.location.href = `/team/${teamId}`;
+    window.location.href = `/dashboard/teams/${teamId}`;
   };
 
   if (isLoading) {
@@ -147,39 +203,47 @@ export const Teams: React.FC = () => {
       ) : (
         <div className="teams-grid">
           {teams.map(team => (
-            <div key={team.id} className="team-card">
-              <div className="team-header">
-                <h3>{team.name}</h3>
+            <div key={team.id} className="team-card" onClick={() => handleOpenTeam(team.id)}>
+              <div className="team-card-header">
+                <div className="team-icon-wrapper">
+                  <svg className="team-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
                 <button 
                   className="delete-team-btn"
-                  onClick={() => handleDeleteTeam(team.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteTeam(team.id);
+                  }}
                   title="Удалить команду"
                 >
-                  ×
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
               </div>
               
-              <p className="team-description">{team.description}</p>
-              
-              <div className="team-stats">
-                <div className="stat">
-                  <span className="stat-value">{team.memberCount}</span>
-                  <span className="stat-label">участников</span>
-                </div>
-                <div className="stat">
-                  <span className="stat-value">{team.projectCount}</span>
-                  <span className="stat-label">проектов</span>
-                </div>
+              <div className="team-content">
+                <h3 className="team-name">{team.name}</h3>
+                <p className="team-description">{team.description || 'Нет описания'}</p>
               </div>
               
-              <div className="team-actions">
-                <button 
-                  className="btn-outline"
-                  onClick={() => handleOpenTeam(team.id)}
-                >
-                  Открыть команду
-                </button>
-                <button className="btn-secondary">Управление</button>
+              <div className="team-footer">
+                <div className="team-meta">
+                  <svg className="meta-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>{team.memberCount} {team.memberCount === 1 ? 'участник' : 'участников'}</span>
+                </div>
+                <div className="team-date">
+                  {new Date(team.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </div>
               </div>
             </div>
           ))}

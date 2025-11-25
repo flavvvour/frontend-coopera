@@ -32,8 +32,6 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
     setLoading(true);
     
     try {
-      console.log('Telegram user data:', telegramUser);
-      
       // 1. Отправляем данные на ваш бэкенд
       const response = await fetch('/api/auth/telegram', {
         method: 'POST',
@@ -90,7 +88,6 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
 
     script.onload = () => {
-      console.log('Telegram widget loaded successfully');
       setScriptLoaded(true);
       setWidgetError('');
     };

@@ -3,6 +3,12 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import './sidebar.css';
 
+import dashboardIcon from '../../../assets/dashboard-logo.svg';
+import teamIcon from '../../../assets/team-logo.svg';
+import settingsIcon from '../../../assets/settings-logo.svg';
+import burgerIcon from '../../../assets/burger-logo.svg';
+import exitIcon from '../../../assets/exit-logo.svg';
+
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface SidebarProps {
   // Убираем пропсы, так как навигация будет через Router
@@ -13,10 +19,9 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   const location = useLocation();
 
   const menuItems = [
-    { id: 'dashboard', label: 'Дашборд', icon: '📊', path: '/dashboard' },
-    { id: 'tasks', label: 'Задачи', icon: '📋', path: '/dashboard/tasks' },
-    { id: 'teams', label: 'Команды', icon: '👥', path: '/dashboard/teams' },
-    { id: 'settings', label: 'Настройки', icon: '⚙️', path: '/dashboard/settings' },
+    { id: 'dashboard', label: 'Dashboard', icon: dashboardIcon, path: '/dashboard' },
+    { id: 'teams', label: 'Teams', icon: teamIcon, path: '/dashboard/teams' },
+    { id: 'settings', label: 'Settings', icon: settingsIcon, path: '/dashboard/settings' },
   ];
 
   // Функция для проверки активного раздела
@@ -36,18 +41,13 @@ export const Sidebar: React.FC<SidebarProps> = () => {
       {/* Хедер с кнопкой сворачивания */}
       <div className="sidebar-header">
         <div className="sidebar-header-content">
-          {!isCollapsed && (
-            <>
-              <h2>Coopera</h2>
-              <p>Трекер задач</p>
-            </>
-          )}
+          {!isCollapsed && <h2>Coopera</h2>}
           <button 
             className="sidebar-toggle"
             onClick={toggleSidebar}
             aria-label={isCollapsed ? 'Развернуть меню' : 'Свернуть меню'}
           >
-            {isCollapsed ? '➡️' : '⬅️'}
+            <img src={burgerIcon} alt="menu" className="sidebar-toggle-icon" />
           </button>
         </div>
       </div>
@@ -62,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                 className={`nav-item ${isActive(item.path) ? 'nav-item--active' : ''}`}
                 title={isCollapsed ? item.label : ''}
               >
-                <span className="nav-item__icon">{item.icon}</span>
+                <img src={item.icon} alt={item.label} className="nav-item__icon" />
                 {!isCollapsed && (
                   <span className="nav-item__label">{item.label}</span>
                 )}
@@ -82,12 +82,10 @@ export const Sidebar: React.FC<SidebarProps> = () => {
               <span className="user-points">100 баллов</span>
             </div>
           )}
-        </div>
-        {!isCollapsed && (
-          <button className="logout-btn">
-            Выйти
+          <button className="logout-icon-btn" aria-label="Выйти">
+            <img src={exitIcon} alt="exit" className="logout-icon" />
           </button>
-        )}
+        </div>
       </div>
     </div>
   );

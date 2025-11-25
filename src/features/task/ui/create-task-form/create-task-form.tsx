@@ -21,11 +21,8 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    priority: 'medium' as 'low' | 'medium' | 'high',
     points: 5,
-    assigneeId: '',
-    dueDate: '',
-    tags: [] as string[]
+    assigneeId: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -35,16 +32,14 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
         ...formData,
         projectId,
         status: 'todo',
-        tags: formData.tags
+        priority: 'medium',
+        tags: []
       });
       setFormData({
         title: '',
         description: '',
-        priority: 'medium',
         points: 5,
-        assigneeId: '',
-        dueDate: '',
-        tags: []
+        assigneeId: ''
       });
       onClose();
     }
@@ -82,56 +77,30 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
             />
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Приоритет</label>
-              <select
-                value={formData.priority}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as any }))}
-              >
-                <option value="low">🟢 Низкий</option>
-                <option value="medium">🟡 Средний</option>
-                <option value="high">🔴 Высокий</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Баллы</label>
-              <input
-                type="number"
-                min="1"
-                max="100"
-                value={formData.points}
-                onChange={(e) => setFormData(prev => ({ ...prev, points: parseInt(e.target.value) }))}
-              />
-            </div>
+          <div className="form-group">
+            <label>Баллы</label>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={formData.points}
+              onChange={(e) => setFormData(prev => ({ ...prev, points: parseInt(e.target.value) }))}
+            />
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Исполнитель</label>
-              <select
-                value={formData.assigneeId}
-                onChange={(e) => setFormData(prev => ({ ...prev, assigneeId: e.target.value }))}
-              >
-                <option value="">Не назначен</option>
-                {teamMembers.map(member => (
-                  <option key={member.id} value={member.userId}>
-                    {member.username}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Срок выполнения</label>
-              <input
-                type="date"
-                value={formData.dueDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-              />
-            </div>
+          <div className="form-group">
+            <label>Исполнитель (опционально)</label>
+            <select
+              value={formData.assigneeId}
+              onChange={(e) => setFormData(prev => ({ ...prev, assigneeId: e.target.value }))}
+            >
+              <option value="">Не назначен</option>
+              {teamMembers.map(member => (
+                <option key={member.id} value={member.userId}>
+                  {member.username}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-actions">
