@@ -31,7 +31,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
       onCreateTask({
         ...formData,
         projectId,
-        status: 'todo',
+        status: 'open',
         priority: 'medium',
         tags: []
       });

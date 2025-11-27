@@ -1,1 +1,1 @@
-export type { Team, TeamMember, Project, Task } from './types';
+export type { Team, TeamMember, Project, Task, BackendTeam, BackendTask } from './types';

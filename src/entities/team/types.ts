@@ -1,39 +1,41 @@
-// entities/team/types.ts
+// ==================== Backend API Types ====================
+// Типы для данных, приходящих с бэкенда (snake_case с json тегами)
 
-export interface TeamMemberApi {
-    id: number;
-    user_id: number;
-    username: string;
-    role: 'owner' | 'admin' | 'member';
-    joined_at: string;
-    points?: number;
-  }
-  
-  export interface ApiTeam {
-    id: number;
-    name: string;
-    description?: string;
-    created_at: string;
-    created_by: number;
-    members?: TeamMemberApi[]; // Заменили any[] на конкретный тип
-  }
-  
-  export interface CreateTeamResponse {
-    id: number;
-    name: string;
-    created_at: string;
-    created_by: number;
-  }
-  
-  export interface Team {
-    id: string;
-    name: string;
-    description: string;
-    createdBy: string;
-    createdAt: string;
-    members: TeamMember[];
-    projects: Project[];
-  }
+export interface BackendTeam {
+  id: number;
+  name: string;
+  created_at: string;
+  created_by: number;
+}
+
+export interface BackendTask {
+  id: number;
+  team_id?: number;
+  title: string;
+  description?: string;
+  status?: string;
+  priority?: string;
+  points?: number;
+  order?: number;
+  assignee_id?: number;
+  assignee_name?: string;
+  created_at?: string;
+  updated_at?: string;
+  created_by?: number;
+}
+
+// ==================== Frontend Types ====================
+// Типы для использования в приложении (camelCase)
+
+export interface Team {
+  id: string;
+  name: string;
+  description: string;
+  createdBy: string;
+  createdAt: string;
+  members: TeamMember[];
+  projects: Project[];
+}
   
   export interface TeamMember {
     id: string;
@@ -57,7 +59,7 @@ export interface TeamMemberApi {
     id: string;
     title: string;
     description: string;
-    status: 'todo' | 'in-progress' | 'done' | 'review';
+    status: 'open' | 'assigned' | 'in_review' | 'completed';  // Бэкендовские статусы
     priority: 'low' | 'medium' | 'high';
     points: number;
     order?: number;

@@ -24,9 +24,11 @@ import React, { useState, useEffect } from 'react';
 import { CreateTeamForm } from '@/features/team/create-team-form';
 import { apiClient } from '@/shared/api';
 import { useUserStore } from '@/features/auth-by-telegram';
+import type { BackendTeam } from '@/entities/team';
 import './teams.css';
 
-interface Team {
+// Упрощенная модель команды для списка
+interface TeamListItem {
   id: string;
   name: string;
   description: string;
@@ -35,16 +37,20 @@ interface Team {
   createdAt: string;
 }
 
-// Тип для ответа от бэкенда (с заглавными буквами)
-interface BackendTeam {
-  ID: number;
-  Name: string;
-  CreatedAt: string;
-  CreatedBy: number;
-}
+// Парсинг команды с бэкенда в формат фронтенда
+const parseTeamFromBackend = (backendTeam: BackendTeam): TeamListItem => {
+  return {
+    id: backendTeam.id.toString(),
+    name: backendTeam.name,
+    description: '',
+    memberCount: 1,
+    projectCount: 0,
+    createdAt: backendTeam.created_at
+  };
+};
 
 export const Teams: React.FC = () => {
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [teams, setTeams] = useState<TeamListItem[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -64,14 +70,7 @@ export const Teams: React.FC = () => {
       }
       
       // Преобразуем данные из формата бэкенда в наш формат
-      const transformedTeams: Team[] = backendTeams.map((team: BackendTeam) => ({
-        id: team.ID.toString(),
-        name: team.Name,
-        description: '',
-        memberCount: 1,
-        projectCount: 0,
-        createdAt: team.CreatedAt
-      }));
+      const transformedTeams: TeamListItem[] = backendTeams.map(parseTeamFromBackend);
       
       setTeams(transformedTeams);
       

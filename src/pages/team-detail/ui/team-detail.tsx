@@ -28,7 +28,7 @@ import { CreateTaskForm, KanbanBoard } from '@/features/task';
 import { ImageCropModal } from '@/features/team/image-crop-modal';
 import { apiClient } from '@/shared/api';
 import { useUserStore } from '@/features/auth-by-telegram';
-import type { Team, Task } from '@/entities/team/index';
+import type { Team, Task, BackendTask } from '@/entities/team/index';
 import changeIcon from '../../../assets/change-logo.svg';
 import folderIcon from '../../../assets/folder-logo.svg';
 import './team-detail.css';
@@ -57,7 +57,7 @@ const mockTeam: Team = {
           id: '1',
           title: 'Дизайн главной страницы',
           description: 'Создать современный дизайн для главной страницы',
-          status: 'done',
+          status: 'completed',
           priority: 'high',
           points: 20,
           assigneeId: 'user1',
@@ -71,7 +71,7 @@ const mockTeam: Team = {
           id: '2',
           title: 'Адаптивная верстка',
           description: 'Сделать верстку адаптивной для мобильных устройств',
-          status: 'in-progress',
+          status: 'assigned',
           priority: 'medium',
           points: 15,
           assigneeId: 'user2',
@@ -111,42 +111,13 @@ export const TeamDetail: React.FC = () => {
       try {
         const tasksData = await apiClient.getTasks(parseInt(teamId));
         
-        // Маппинг статусов бэкенда на фронтенд
-        const mapStatus = (backendStatus: string): Task['status'] => {
-          const statusMap: Record<string, Task['status']> = {
-            'open': 'todo',
-            'assigned': 'in-progress',
-            'completed': 'done',
-            'archived': 'done',
-            // Legacy поддержка старых статусов
-            'in_progress': 'in-progress',
-            'review': 'review',
-            'done': 'done'
-          };
-          return statusMap[backendStatus] || 'todo';
-        };
-        
         // Преобразуем данные с бэкенда в формат фронтенда
-        const tasks: Task[] = (tasksData || []).map((task: {
-          id: number;
-          team_id?: number;
-          title: string;
-          description?: string;
-          status?: string;
-          priority?: string;
-          points?: number;
-          order?: number;
-          assignee_id?: number;
-          assignee_name?: string;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: number;
-        }) => {
+        const tasks: Task[] = (tasksData || []).map((task: BackendTask) => {
           return {
             id: task.id.toString(),
             title: task.title,
             description: task.description || '',
-            status: mapStatus(task.status || 'open'),
+            status: (task.status as Task['status']) || 'open',  // Статусы совпадают!
             priority: (task.priority as Task['priority']) || 'medium',
             points: task.points || 0,
             order: task.order,
@@ -223,18 +194,6 @@ export const TeamDetail: React.FC = () => {
   const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
     if (!activeProject) return;
 
-    // Маппинг статусов фронтенда на бэкенд
-    const mapStatusToBackend = (frontendStatus?: Task['status']): string => {
-      if (!frontendStatus) return 'open';
-      const statusMap: Record<Task['status'], string> = {
-        'todo': 'open',
-        'in-progress': 'assigned',
-        'review': 'assigned',      // review тоже mapped на assigned
-        'done': 'completed'
-      };
-      return statusMap[frontendStatus] || 'open';
-    };
-
     // Оптимистичное обновление UI
     setTeam(prev => ({
       ...prev,
@@ -250,10 +209,9 @@ export const TeamDetail: React.FC = () => {
       )
     }));
 
-    // Отправляем на бэкенд с правильным форматом статуса
+    // Отправляем на бэкенд
     try {
       const userId = user?.id || 1;
-      const backendStatus = mapStatusToBackend(updates.status);
       
       // Формируем payload только с теми полями, которые были изменены
       const payload: {
@@ -269,7 +227,7 @@ export const TeamDetail: React.FC = () => {
         current_user_id: userId
       };
       
-      if (updates.status) payload.status = backendStatus;
+      if (updates.status) payload.status = updates.status;
       if (updates.title !== undefined) payload.title = updates.title;
       if (updates.description !== undefined) payload.description = updates.description;
       if (updates.points !== undefined) payload.points = updates.points;
