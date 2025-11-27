@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useUserStore, authService } from "@/features/auth-by-telegram"
+import { useUserStore } from "@/features/auth-by-telegram"
 import type { TelegramUser } from '@/entities/user';
 import './telegram-login-button.css';
 
@@ -47,10 +47,7 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
 
       const authData = await response.json();
       
-      // 2. Сохраняем токен
-      authService.saveToken(authData.token);
-      
-      // 3. Сохраняем пользователя в store
+      // 2. Сохраняем пользователя в store
       setUser(authData.user);
       
     } catch (error) {
