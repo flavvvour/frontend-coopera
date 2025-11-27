@@ -119,6 +119,24 @@
   cursor: grabbing;
 }
 
+/* Выполненная задача */
+.task-card.completed {
+  opacity: 0.7;
+}
+
+.task-card.completed .task-title {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+.task-card.completed .task-description {
+  color: #d1d5db;
+}
+
+.task-card.completed:hover {
+  opacity: 0.85;
+}
+
 .task-header {
   display: flex;
   justify-content: space-between;

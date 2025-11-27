@@ -53,10 +53,10 @@ interface KanbanBoardProps {
 }
 
 const columns = [
-  { id: 'todo', title: 'Бэклог', color: '#3b82f6' },
-  { id: 'in-progress', title: 'В работе', color: '#f59e0b' },
-  { id: 'review', title: 'На проверке', color: '#8b5cf6' },
-  { id: 'done', title: 'Выполнено', color: '#10b981' }
+  { id: 'open', title: 'Бэклог', color: '#3b82f6' },
+  { id: 'assigned', title: 'В работе', color: '#f59e0b' },
+  { id: 'in_review', title: 'На проверке', color: '#8b5cf6' },
+  { id: 'completed', title: 'Выполнено', color: '#10b981' }
 ] as const;
 
 interface DroppableColumnProps {
@@ -102,7 +102,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, isDragging = false }) => {
       style={style}
       {...attributes}
       {...listeners}
-      className="task-card"
+      className={`task-card ${task.status === 'completed' ? 'completed' : ''}`}
     >
       <div className="task-header">
         <span className={`task-priority priority-${task.priority}`}>
