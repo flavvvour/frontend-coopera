@@ -33,116 +33,86 @@ import changeIcon from '../../../assets/change-logo.svg';
 import folderIcon from '../../../assets/folder-logo.svg';
 import './team-detail.css';
 
-// Mock данные для демонстрации
-const mockTeam: Team = {
-  id: '1',
-  name: 'Разработка фронтенда',
-  description: 'Команда разработки пользовательского интерфейса',
-  createdBy: 'user1',
-  createdAt: '2024-01-15',
-  members: [
-    { id: '1', userId: 'user1', username: 'Иван Иванов', role: 'owner', joinedAt: '2024-01-15', points: 150 },
-    { id: '2', userId: 'user2', username: 'Петр Петров', role: 'member', joinedAt: '2024-01-16', points: 80 },
-    { id: '3', userId: 'user3', username: 'Мария Сидорова', role: 'member', joinedAt: '2024-01-17', points: 120 },
-  ],
-  projects: [
-    {
-      id: '1',
-      name: 'Главный сайт',
-      description: 'Разработка основного веб-сайта компании',
-      teamId: '1',
-      createdAt: '2024-01-20',
-      tasks: [
-        {
-          id: '1',
-          title: 'Дизайн главной страницы',
-          description: 'Создать современный дизайн для главной страницы',
-          status: 'completed',
-          priority: 'high',
-          points: 20,
-          assigneeId: 'user1',
-          assigneeName: 'Иван Иванов',
-          createdAt: '2024-01-20',
-          updatedAt: '2024-01-22',
-          projectId: '1',
-          tags: ['design', 'ui']
-        },
-        {
-          id: '2',
-          title: 'Адаптивная верстка',
-          description: 'Сделать верстку адаптивной для мобильных устройств',
-          status: 'assigned',
-          priority: 'medium',
-          points: 15,
-          assigneeId: 'user2',
-          assigneeName: 'Петр Петров',
-          createdAt: '2024-01-21',
-          updatedAt: '2024-01-21',
-          projectId: '1',
-          tags: ['responsive', 'css']
-        }
-      ]
-    }
-  ]
-};
-
 export const TeamDetail: React.FC = () => {
   const navigate = useNavigate();
   const { teamId } = useParams<{ teamId: string }>();
   const { user } = useUserStore();
-  const [team, setTeam] = useState<Team>(mockTeam);
+  const [team, setTeam] = useState<Team | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState<string>('');
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [editedName, setEditedName] = useState(team.name);
-  const [editedDescription, setEditedDescription] = useState(team.description);
+  const [editedName, setEditedName] = useState('');
+  const [editedDescription, setEditedDescription] = useState('');
 
   // Вычисляем activeProject динамически из team.projects
-  const activeProject = team.projects[0] || null;
+  const activeProject = team?.projects[0] || null;
 
-  // Загружаем задачи с сервера при монтировании компонента
+  // Загружаем команду и задачи с сервера при монтировании компонента
   React.useEffect(() => {
-    const loadTeamTasks = async () => {
+    const loadTeamData = async () => {
       if (!teamId) return;
       
+      setLoading(true);
       try {
+        // Загружаем информацию о команде
+        const teamData = await apiClient.getTeam(parseInt(teamId));
+        
+        // Загружаем задачи команды
         const tasksData = await apiClient.getTasks(parseInt(teamId));
         
-        // Преобразуем данные с бэкенда в формат фронтенда
-        const tasks: Task[] = (tasksData || []).map((task: BackendTask) => {
-          return {
-            id: task.id.toString(),
-            title: task.title,
-            description: task.description || '',
-            status: (task.status as Task['status']) || 'open',  // Статусы совпадают!
-            priority: (task.priority as Task['priority']) || 'medium',
-            points: task.points || 0,
-            order: task.order,
-            assigneeId: task.assignee_id?.toString() || '',
-            assigneeName: task.assignee_name || '',
-            createdAt: task.created_at || new Date().toISOString(),
-            updatedAt: task.updated_at || new Date().toISOString(),
-            projectId: activeProject?.id || '1',
-            tags: []
-          };
-        });
-        
-        setTeam(prev => ({
-          ...prev,
-          projects: prev.projects.map((project, index) => 
-            index === 0 ? { ...project, tasks } : project
-          )
+        // Преобразуем задачи с бэкенда
+        const tasks: Task[] = (tasksData || []).map((task: BackendTask) => ({
+          id: task.id.toString(),
+          title: task.title,
+          description: task.description || '',
+          status: (task.status as Task['status']) || 'open',
+          priority: (task.priority as Task['priority']) || 'medium',
+          points: task.points || 0,
+          order: task.order,
+          assigneeId: task.assignee_id?.toString() || '',
+          assigneeName: task.assignee_name || '',
+          createdAt: task.created_at || new Date().toISOString(),
+          updatedAt: task.updated_at || new Date().toISOString(),
+          projectId: '1',
+          tags: []
         }));
+        
+        // Формируем структуру Team
+        const loadedTeam: Team = {
+          id: teamData.id?.toString() || teamId,
+          name: teamData.name || 'Команда',
+          description: teamData.description || '',
+          createdBy: teamData.created_by?.toString() || '',
+          createdAt: teamData.created_at || new Date().toISOString(),
+          members: [], // TODO: загрузить через GET /memberships/
+          projects: [
+            {
+              id: '1',
+              name: teamData.name || 'Проект',
+              description: teamData.description || '',
+              teamId: teamData.id?.toString() || teamId,
+              createdAt: teamData.created_at || new Date().toISOString(),
+              tasks
+            }
+          ]
+        };
+        
+        setTeam(loadedTeam);
+        setEditedName(loadedTeam.name);
+        setEditedDescription(loadedTeam.description);
       } catch (error) {
-        console.error('Failed to load tasks:', error);
+        console.error('Failed to load team data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    loadTeamTasks();
-  }, [teamId, activeProject?.id]);
+    loadTeamData();
+  }, [teamId]);
 
   const handleCoverImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -163,17 +133,37 @@ export const TeamDetail: React.FC = () => {
 
   const handleSaveName = () => {
     if (editedName.trim()) {
-      setTeam(prev => ({ ...prev, name: editedName.trim() }));
+      setTeam(prev => prev ? { ...prev, name: editedName.trim() } : null);
       setIsEditingName(false);
       // FUTURE: Implement PUT /teams/?team_id= endpoint to update team name
     }
   };
 
   const handleSaveDescription = () => {
-    setTeam(prev => ({ ...prev, description: editedDescription.trim() }));
+    setTeam(prev => prev ? { ...prev, description: editedDescription.trim() } : null);
     setIsEditingDescription(false);
     // FUTURE: Implement PUT /teams/?team_id= endpoint to update team description
   };
+
+  if (loading) {
+    return (
+      <div className="team-detail">
+        <div className="loading-state" style={{ padding: '2rem', textAlign: 'center' }}>
+          Загрузка команды...
+        </div>
+      </div>
+    );
+  }
+
+  if (!team) {
+    return (
+      <div className="team-detail">
+        <div className="error-state" style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
+          Команда не найдена
+        </div>
+      </div>
+    );
+  }
 
   const handleCancelEditName = () => {
     setEditedName(team.name);
@@ -192,22 +182,25 @@ export const TeamDetail: React.FC = () => {
   };
 
   const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
-    if (!activeProject) return;
+    if (!activeProject || !team) return;
 
     // Оптимистичное обновление UI
-    setTeam(prev => ({
-      ...prev,
-      projects: prev.projects.map(project => 
-        project.id === activeProject.id 
-          ? {
-              ...project,
-              tasks: project.tasks.map(task =>
-                task.id === taskId ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task
-              )
-            }
-          : project
-      )
-    }));
+    setTeam(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        projects: prev.projects.map(project => 
+          project.id === activeProject.id 
+            ? {
+                ...project,
+                tasks: project.tasks.map(task =>
+                  task.id === taskId ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task
+                )
+              }
+            : project
+        )
+      };
+    });
 
     // Отправляем на бэкенд
     try {
@@ -270,14 +263,17 @@ export const TeamDetail: React.FC = () => {
         updatedAt: new Date().toISOString()
       };
 
-      setTeam(prev => ({
-        ...prev,
-        projects: prev.projects.map(project =>
-          project.id === activeProject.id
-            ? { ...project, tasks: [...project.tasks, newTask] }
-            : project
-        )
-      }));
+      setTeam(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          projects: prev.projects.map(project =>
+            project.id === activeProject.id
+              ? { ...project, tasks: [...project.tasks, newTask] }
+              : project
+          )
+        };
+      });
     } catch (error) {
       console.error('Failed to create task:', error);
       alert('Не удалось создать задачу. Попробуйте еще раз.');
