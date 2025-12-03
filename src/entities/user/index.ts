@@ -1,1 +1,1 @@
-export type { User, TelegramUser, AuthResponse } from "./types";
+export type { User, TelegramUser, AuthResponse } from './types';

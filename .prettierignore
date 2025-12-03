@@ -1,0 +1,20 @@
+# Зависимости
+node_modules
+dist
+build
+
+# Сборка
+*.min.js
+*.min.css
+
+# Кеш
+.cache
+*.log
+
+# Vite
+.vite
+
+# Окружение
+.env
+.env.local
+.env.production

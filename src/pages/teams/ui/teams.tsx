@@ -1,7 +1,7 @@
 // pages/teams-page.tsx
 /**
  * Teams Page (FSD: pages/teams)
- * 
+ *
  * IMPLEMENTED:
  * - Display grid of user's teams with modern card design
  * - Team creation via modal form
@@ -10,7 +10,7 @@
  * - Backend data transformation (PascalCase → camelCase)
  * - Loading states and error handling
  * - Empty state with call-to-action
- * 
+ *
  * FUTURE:
  * - Replace hardcoded user_id with actual authentication
  * - Add team search and filtering
@@ -45,7 +45,7 @@ const parseTeamFromBackend = (backendTeam: BackendTeam): TeamListItem => {
     description: '',
     memberCount: 1,
     projectCount: 0,
-    createdAt: backendTeam.created_at
+    createdAt: backendTeam.created_at,
   };
 };
 
@@ -59,21 +59,20 @@ export const Teams: React.FC = () => {
   const loadTeamsFromAPI = async () => {
     try {
       setIsLoading(true);
-      
+
       // Передаем user_id для получения команд пользователя
       const userId = user?.id || 1; // FUTURE: Replace hardcoded fallback with proper auth
-      const backendTeams = await apiClient.getTeams(userId) as unknown as BackendTeam[];
-      
+      const backendTeams = (await apiClient.getTeams(userId)) as unknown as BackendTeam[];
+
       if (!Array.isArray(backendTeams)) {
         setTeams([]);
         return;
       }
-      
+
       // Преобразуем данные из формата бэкенда в наш формат
       const transformedTeams: TeamListItem[] = backendTeams.map(parseTeamFromBackend);
-      
+
       setTeams(transformedTeams);
-      
     } catch (error) {
       console.error('Failed to load teams:', error);
       setTeams([]);
@@ -86,32 +85,31 @@ export const Teams: React.FC = () => {
     loadTeamsFromAPI();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   const handleCreateTeam = async (teamData: { name: string; description: string }) => {
     if (isCreating) return;
-    
+
     try {
       setIsCreating(true);
-      
+
       await apiClient.createTeam({
         name: teamData.name,
         description: teamData.description,
-        user_id: 1
+        user_id: 1,
       });
-      
+
       setIsCreateModalOpen(false);
       await loadTeamsFromAPI();
-      
     } catch (error) {
       console.error('Failed to create team:', error);
-      
+
       let errorMessage = 'Неизвестная ошибка';
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-      
+
       alert(`Ошибка при создании команды: ${errorMessage}`);
     } finally {
       setIsCreating(false);
@@ -122,38 +120,35 @@ export const Teams: React.FC = () => {
     // Подтверждение удаления
     const team = teams.find(t => t.id === teamId);
     if (!team) return;
-    
+
     const confirmed = window.confirm(
       `Вы уверены, что хотите удалить команду "${team.name}"?\n\nЭто действие нельзя отменить.`
     );
-    
+
     if (!confirmed) return;
-    
+
     try {
-      await apiClient.deleteTeam(
-        parseInt(teamId),
-        1
-      );
-      
+      await apiClient.deleteTeam(parseInt(teamId), 1);
+
       setTeams(prev => prev.filter(team => team.id !== teamId));
-      
     } catch (error) {
       console.error('Failed to delete team:', error);
-      
+
       let errorMessage = 'Не удалось удалить команду';
       if (error instanceof Error) {
         const msg = error.message.toLowerCase();
-        
+
         // Проверяем различные типы ошибок
         if (msg.includes('403') || msg.includes('forbidden') || msg.includes('permission')) {
-          errorMessage = '❌ У вас нет прав на удаление этой команды.\n\nТолько владелец команды (роль Manager) может её удалить.';
+          errorMessage =
+            '❌ У вас нет прав на удаление этой команды.\n\nТолько владелец команды (роль Manager) может её удалить.';
         } else if (msg.includes('404') || msg.includes('not found')) {
           errorMessage = '❌ Команда не найдена. Возможно, она уже удалена.';
         } else {
           errorMessage = `❌ Ошибка: ${error.message}`;
         }
       }
-      
+
       alert(errorMessage);
     }
   };
@@ -179,10 +174,7 @@ export const Teams: React.FC = () => {
         <div className="header-content">
           <h1>Мои команды</h1>
         </div>
-        <button 
-          className="create-team-btn"
-          onClick={() => setIsCreateModalOpen(true)}
-        >
+        <button className="create-team-btn" onClick={() => setIsCreateModalOpen(true)}>
           + Создать команду
         </button>
       </div>
@@ -192,10 +184,7 @@ export const Teams: React.FC = () => {
           <div className="empty-icon">👥</div>
           <h3>У вас пока нет команд</h3>
           <p>Создайте первую команду чтобы начать работу над проектами</p>
-          <button 
-            className="btn-primary"
-            onClick={() => setIsCreateModalOpen(true)}
-          >
+          <button className="btn-primary" onClick={() => setIsCreateModalOpen(true)}>
             Создать команду
           </button>
         </div>
@@ -205,43 +194,111 @@ export const Teams: React.FC = () => {
             <div key={team.id} className="team-card" onClick={() => handleOpenTeam(team.id)}>
               <div className="team-card-header">
                 <div className="team-icon-wrapper">
-                  <svg className="team-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    className="team-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="9"
+                      cy="7"
+                      r="4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M23 21v-2a4 4 0 0 0-3-3.87"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M16 3.13a4 4 0 0 1 0 7.75"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </div>
-                <button 
+                <button
                   className="delete-team-btn"
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation();
                     handleDeleteTeam(team.id);
                   }}
                   title="Удалить команду"
                 >
                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path
+                      d="M3 6h18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </button>
               </div>
-              
+
               <div className="team-content">
                 <h3 className="team-name">{team.name}</h3>
                 <p className="team-description">{team.description || 'Нет описания'}</p>
               </div>
-              
+
               <div className="team-footer">
                 <div className="team-meta">
-                  <svg className="meta-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg
+                    className="meta-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx="9"
+                      cy="7"
+                      r="4"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
-                  <span>{team.memberCount} {team.memberCount === 1 ? 'участник' : 'участников'}</span>
+                  <span>
+                    {team.memberCount} {team.memberCount === 1 ? 'участник' : 'участников'}
+                  </span>
                 </div>
                 <div className="team-date">
-                  {new Date(team.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {new Date(team.createdAt).toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
                 </div>
               </div>
             </div>

@@ -16,13 +16,13 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
   onClose,
   onCreateTask,
   projectId,
-  teamMembers
+  teamMembers,
 }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     points: 5,
-    assigneeId: ''
+    assigneeId: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,13 +33,13 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
         projectId,
         status: 'open',
         priority: 'medium',
-        tags: []
+        tags: [],
       });
       setFormData({
         title: '',
         description: '',
         points: 5,
-        assigneeId: ''
+        assigneeId: '',
       });
       onClose();
     }
@@ -52,16 +52,18 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
       <div className="modal-content">
         <div className="modal-header">
           <h2>Создать задачу</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="task-form">
           <div className="form-group">
             <label>Название задачи *</label>
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
               placeholder="Что нужно сделать?"
               required
             />
@@ -71,7 +73,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
             <label>Описание</label>
             <textarea
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Подробное описание задачи..."
               rows={3}
             />
@@ -84,7 +86,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
               min="1"
               max="100"
               value={formData.points}
-              onChange={(e) => setFormData(prev => ({ ...prev, points: parseInt(e.target.value) }))}
+              onChange={e => setFormData(prev => ({ ...prev, points: parseInt(e.target.value) }))}
             />
           </div>
 
@@ -92,7 +94,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
             <label>Исполнитель (опционально)</label>
             <select
               value={formData.assigneeId}
-              onChange={(e) => setFormData(prev => ({ ...prev, assigneeId: e.target.value }))}
+              onChange={e => setFormData(prev => ({ ...prev, assigneeId: e.target.value }))}
             >
               <option value="">Не назначен</option>
               {teamMembers.map(member => (

@@ -42,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
       <div className="sidebar-header">
         <div className="sidebar-header-content">
           {!isCollapsed && <h2>Coopera</h2>}
-          <button 
+          <button
             className="sidebar-toggle"
             onClick={toggleSidebar}
             aria-label={isCollapsed ? 'Развернуть меню' : 'Свернуть меню'}
@@ -51,11 +51,11 @@ export const Sidebar: React.FC<SidebarProps> = () => {
           </button>
         </div>
       </div>
-      
+
       {/* Навигация */}
       <nav className="sidebar-nav">
         <ul>
-          {menuItems.map((item) => (
+          {menuItems.map(item => (
             <li key={item.id}>
               <Link
                 to={item.path}
@@ -63,9 +63,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
                 title={isCollapsed ? item.label : ''}
               >
                 <img src={item.icon} alt={item.label} className="nav-item__icon" />
-                {!isCollapsed && (
-                  <span className="nav-item__label">{item.label}</span>
-                )}
+                {!isCollapsed && <span className="nav-item__label">{item.label}</span>}
               </Link>
             </li>
           ))}

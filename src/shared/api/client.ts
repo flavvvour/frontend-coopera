@@ -1,6 +1,6 @@
 /**
  * API Client (FSD: shared/api)
- * 
+ *
  * IMPLEMENTED:
  * - Axios-based HTTP client with base URL configuration
  * - Response error interceptor for consistent error handling
@@ -8,7 +8,7 @@
  * - Tasks API: getTasks, createTask, updateTask
  * - Memberships API: addMember, removeMember
  * - Users API: createUser, getUser, getUserByUsername
- * 
+ *
  * FUTURE:
  * - Implement request/response logging for development mode only
  * - Add authentication token handling via interceptors
@@ -34,7 +34,7 @@ class ApiClient {
 
     // Response interceptor для обработки ошибок
     this.axiosInstance.interceptors.response.use(
-      (response) => response,
+      response => response,
       (error: AxiosError) => {
         console.error('API Error:', {
           status: error.response?.status,
@@ -47,7 +47,7 @@ class ApiClient {
     );
   }
 
-  // Teams API
+  // Teams API -> GET (teams) POST, GET(team), DELETE
   async getTeams(userId?: number) {
     try {
       if (userId) {
@@ -56,7 +56,7 @@ class ApiClient {
       }
       // Если user_id не передан, возвращаем пустой массив
       return [];
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       // Backend требует обязательный параметр (team_id или user_id)
       return [];
@@ -74,19 +74,21 @@ class ApiClient {
   }
 
   async deleteTeam(teamId: number, currentUserId: number) {
-    const response = await this.axiosInstance.delete(`/teams/?team_id=${teamId}&current_user_id=${currentUserId}`);
+    const response = await this.axiosInstance.delete(
+      `/teams/?team_id=${teamId}&current_user_id=${currentUserId}`
+    );
     return response.data;
   }
 
-  // Tasks API
+  // Tasks API -> GET (tasks), POST, PATCH
   async getTasks(teamId: number) {
     const response = await this.axiosInstance.get(`/tasks/?team_id=${teamId}`);
     return response.data;
   }
 
-  async createTask(data: { 
-    title: string; 
-    description: string; 
+  async createTask(data: {
+    title: string;
+    description: string;
     team_id: number;
     points: number;
     current_user_id: number;
@@ -95,31 +97,46 @@ class ApiClient {
     return response.data;
   }
 
-  async updateTask(taskId: number, data: { 
-    status?: string;
-    title?: string;
-    description?: string;
-    points?: number;
-    order?: number;
-    current_user_id: number;
-  }) {
+  async updateTask(
+    taskId: number,
+    data: {
+      status?: string;
+      title?: string;
+      description?: string;
+      points?: number;
+      order?: number;
+      current_user_id: number;
+    }
+  ) {
     const response = await this.axiosInstance.patch(`/tasks/?task_id=${taskId}`, data);
     return response.data;
   }
 
   // Memberships API
+  async getMemberships(teamId: number) {
+    const response = await this.axiosInstance.get(`/memberships/?team_id=${teamId}`);
+    return response.data;
+  }
+
   async addMember(data: { team_id: number; user_id: number; role?: string }) {
     const response = await this.axiosInstance.post('/memberships/', data);
     return response.data;
   }
 
   async removeMember(teamId: number, userId: number) {
-    const response = await this.axiosInstance.delete(`/memberships/?team_id=${teamId}&user_id=${userId}`);
+    const response = await this.axiosInstance.delete(
+      `/memberships/?team_id=${teamId}&user_id=${userId}`
+    );
     return response.data;
   }
 
   // Users API
-  async createUser(data: { telegram_id: number; username: string; first_name: string; last_name: string }) {
+  async createUser(data: {
+    telegram_id: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+  }) {
     const response = await this.axiosInstance.post('/users/', data);
     return response.data;
   }

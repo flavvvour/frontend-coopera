@@ -1,6 +1,6 @@
 /**
  * Kanban Board (FSD: features/task)
- * 
+ *
  * IMPLEMENTED:
  * - Drag-and-drop functionality using @dnd-kit library
  * - 4 columns: To Do, In Progress, Review, Done
@@ -9,7 +9,7 @@
  * - Task status update on drop
  * - Keyboard accessibility for drag-and-drop
  * - TaskCard component with assignee info
- * 
+ *
  * FUTURE:
  * - Column customization (add/remove/rename columns)
  * - Task filtering by assignee, priority, tags
@@ -50,13 +50,14 @@ interface KanbanBoardProps {
   onCreateTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
   projectId: string;
   teamMembers: TeamMember[];
+  isManager?: boolean; // Может ли пользователь создавать задачи
 }
 
 const columns = [
   { id: 'open', title: 'Бэклог', color: '#3b82f6' },
   { id: 'assigned', title: 'В работе', color: '#f59e0b' },
   { id: 'in_review', title: 'На проверке', color: '#8b5cf6' },
-  { id: 'completed', title: 'Выполнено', color: '#10b981' }
+  { id: 'completed', title: 'Выполнено', color: '#10b981' },
 ] as const;
 
 interface DroppableColumnProps {
@@ -67,7 +68,7 @@ interface DroppableColumnProps {
 
 const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, children, className }) => {
   const { setNodeRef } = useDroppable({ id });
-  
+
   return (
     <div ref={setNodeRef} className={className}>
       {children}
@@ -110,22 +111,20 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, isDragging = false }) => {
         </span>
         <span className="task-points">{task.points}</span>
       </div>
-      
+
       <h5 className="task-title">{task.title}</h5>
-      {task.description && (
-        <p className="task-description">{task.description}</p>
-      )}
-      
+      {task.description && <p className="task-description">{task.description}</p>}
+
       <div className="task-footer">
-        {task.assigneeName && (
-          <span className="task-assignee">{task.assigneeName}</span>
-        )}
+        {task.assigneeName && <span className="task-assignee">{task.assigneeName}</span>}
       </div>
 
       {task.tags && task.tags.length > 0 && (
         <div className="task-tags">
           {task.tags.map(tag => (
-            <span key={tag} className="tag">{tag}</span>
+            <span key={tag} className="tag">
+              {tag}
+            </span>
           ))}
         </div>
       )}
@@ -138,7 +137,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onUpdateTask,
   onCreateTask,
   projectId,
-  teamMembers
+  teamMembers,
+  isManager = true, // По умолчанию true для обратной совместимости
 }) => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
@@ -166,17 +166,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    
+
     if (!over) return;
 
     const activeTaskId = active.id as string;
     const activeTask = tasks.find(t => t.id === activeTaskId);
-    
+
     if (!activeTask) return;
 
     // Проверяем, перетаскиваем ли на колонку
     const isOverColumn = columns.some(col => col.id === over.id);
-    
+
     if (isOverColumn) {
       // Перетаскиваем на пустую колонку
       const newStatus = over.id as Task['status'];
@@ -196,33 +196,33 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
-    
+
     if (!over) return;
     if (active.id === over.id) return;
-    
+
     const activeTask = tasks.find(t => t.id === active.id);
-    
+
     // Проверяем, перетаскиваем ли на задачу или на колонку
     const overTask = tasks.find(t => t.id === over.id);
-    
+
     if (!activeTask) return;
-    
+
     // Если перетаскиваем на задачу в той же колонке (сортировка)
     if (overTask && activeTask.status === overTask.status) {
       const columnTasks = tasks
         .filter(t => t.status === activeTask.status)
         .sort((a, b) => (a.order || 0) - (b.order || 0));
-      
+
       const oldIndex = columnTasks.findIndex(t => t.id === active.id);
       const newIndex = columnTasks.findIndex(t => t.id === over.id);
-      
+
       if (oldIndex === newIndex) return;
-      
+
       // Рассчитываем новый order:
       // Если перемещаем вниз, берем order целевой задачи + 1
       // Если перемещаем вверх, берем order целевой задачи
       let newOrder: number;
-      
+
       if (newIndex === 0) {
         // Перемещаем в начало - order меньше первой задачи
         newOrder = Math.max(0, (columnTasks[0].order || 0) - 1);
@@ -240,7 +240,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         const nextOrder = columnTasks[newIndex + 1]?.order || newIndex + 1;
         newOrder = Math.floor((prevOrder + nextOrder) / 2);
       }
-      
+
       onUpdateTask(activeTask.id, { order: newOrder });
     }
   };
@@ -256,14 +256,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       onDragEnd={handleDragEnd}
     >
       <div className="kanban-board">
-        <div className="kanban-actions">
-          <button 
-            className="create-task-btn"
-            onClick={() => setIsCreateTaskOpen(true)}
-          >
-            + Новая задача
-          </button>
-        </div>
+        {isManager && (
+          <div className="kanban-actions">
+            <button className="create-task-btn" onClick={() => setIsCreateTaskOpen(true)}>
+              + Новая задача
+            </button>
+          </div>
+        )}
 
         <div className="kanban-columns">
           {columns.map(column => {
@@ -277,7 +276,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   </div>
                   <span className="column-count">{columnTasks.length}</span>
                 </div>
-                
+
                 <SortableContext
                   id={column.id}
                   items={columnTasks.map(t => t.id)}
@@ -294,9 +293,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           })}
         </div>
 
-        <DragOverlay>
-          {activeTask ? <TaskCard task={activeTask} isDragging /> : null}
-        </DragOverlay>
+        <DragOverlay>{activeTask ? <TaskCard task={activeTask} isDragging /> : null}</DragOverlay>
 
         <CreateTaskForm
           isOpen={isCreateTaskOpen}

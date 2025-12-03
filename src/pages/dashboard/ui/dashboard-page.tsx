@@ -10,7 +10,7 @@ export const DashboardPage: React.FC = () => {
   return (
     <div className="dashboard-page">
       <Sidebar />
-      
+
       <main className="dashboard-main">
         <Routes>
           <Route index element={<DashboardHome />} />
@@ -29,7 +29,7 @@ const DashboardHome: React.FC = () => (
       <h1>Обзор проектов</h1>
       <p>Мониторинг ваших задач и прогресса</p>
     </div>
-    
+
     <div className="stats-grid">
       <div className="stat-card">
         <div className="stat-icon">📋</div>
