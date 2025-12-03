@@ -1,1 +1,1 @@
-export { TelegramLoginButton } from "./telegram-login-button";
+export { TelegramLoginButton } from './telegram-login-button';

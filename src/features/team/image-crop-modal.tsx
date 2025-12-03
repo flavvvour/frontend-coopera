@@ -20,7 +20,7 @@ const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const image = new Image();
     image.addEventListener('load', () => resolve(image));
-    image.addEventListener('error', (error) => reject(error));
+    image.addEventListener('error', error => reject(error));
     image.src = url;
   });
 
@@ -48,8 +48,8 @@ const getCroppedImg = async (imageSrc: string, pixelCrop: Area): Promise<string>
     pixelCrop.height
   );
 
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
+  return new Promise(resolve => {
+    canvas.toBlob(blob => {
       if (blob) {
         const url = URL.createObjectURL(blob);
         resolve(url);
@@ -91,7 +91,9 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
       <div className="crop-modal-content">
         <div className="crop-modal-header">
           <h3>Настройка обложки</h3>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <div className="crop-container">
@@ -115,7 +117,7 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
               min={1}
               max={3}
               step={0.1}
-              onChange={(e) => setZoom(Number(e.target.value))}
+              onChange={e => setZoom(Number(e.target.value))}
             />
           </div>
         </div>

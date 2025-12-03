@@ -13,7 +13,7 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({
   isOpen,
   onClose,
   onCreateTeam,
-  isLoading: externalLoading
+  isLoading: externalLoading,
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -21,17 +21,17 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!name.trim() || externalLoading) {
       return;
     }
-    
+
     // Вызываем только callback родителя - он сам создаст команду
     onCreateTeam({
       name: name.trim(),
-      description: description.trim()
+      description: description.trim(),
     });
-    
+
     // Сбрасываем форму
     setName('');
     setDescription('');
@@ -44,9 +44,11 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({
       <div className="modal-content">
         <div className="modal-header">
           <h2>Создать новую команду</h2>
-          <button className="close-button" onClick={onClose}>×</button>
+          <button className="close-button" onClick={onClose}>
+            ×
+          </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="team-form">
           <div className="form-group">
             <label htmlFor="team-name">Название команды *</label>
@@ -54,37 +56,37 @@ export const CreateTeamForm: React.FC<CreateTeamFormProps> = ({
               id="team-name"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               placeholder="Например: Разработка фронтенда"
               required
               disabled={externalLoading}
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="team-description">Описание</label>
             <textarea
               id="team-description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               placeholder="Опишите цель команды..."
               rows={4}
               disabled={externalLoading}
             />
           </div>
-          
+
           <div className="form-actions">
-            <button 
-              type="button" 
-              onClick={onClose} 
+            <button
+              type="button"
+              onClick={onClose}
               className="btn-secondary"
               disabled={externalLoading}
             >
               Отмена
             </button>
-            <button 
-              type="submit" 
-              className="btn-primary" 
+            <button
+              type="submit"
+              className="btn-primary"
               disabled={!name.trim() || externalLoading}
             >
               {externalLoading ? 'Создание...' : 'Создать команду'}

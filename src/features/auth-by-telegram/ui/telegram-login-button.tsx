@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useUserStore } from "@/features/auth-by-telegram"
+import { useUserStore } from '@/features/auth-by-telegram';
 import type { TelegramUser } from '@/entities/user';
 import './telegram-login-button.css';
 
@@ -16,12 +16,12 @@ interface TelegramLoginButtonProps {
 
 export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
   botUsername,
-  size = 'large'
+  size = 'large',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const setUser = useUserStore((state) => state.setUser);
-    const setLoading = useUserStore((state) => state.setLoading);
-    const isLoading = useUserStore((state) => state.isLoading);
+  const setUser = useUserStore(state => state.setUser);
+  const setLoading = useUserStore(state => state.setLoading);
+  const isLoading = useUserStore(state => state.isLoading);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [widgetError, setWidgetError] = useState<string>('');
 
@@ -30,7 +30,7 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
   // Функция обработки авторизации - ПРЯМО ЗДЕСЬ
   const handleTelegramAuth = async (telegramUser: TelegramUser) => {
     setLoading(true);
-    
+
     try {
       // 1. Отправляем данные на ваш бэкенд
       const response = await fetch('/api/auth/telegram', {
@@ -38,7 +38,7 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(telegramUser)
+        body: JSON.stringify(telegramUser),
       });
 
       if (!response.ok) {
@@ -46,10 +46,9 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
       }
 
       const authData = await response.json();
-      
+
       // 2. Сохраняем пользователя в store
       setUser(authData.user);
-      
     } catch (error) {
       console.error('Auth error:', error);
       // Можно показать ошибку пользователю
@@ -78,7 +77,7 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.async = true;
-    
+
     script.setAttribute('data-telegram-login', cleanBotUsername);
     script.setAttribute('data-size', size);
     script.setAttribute('data-request-access', 'write');
@@ -104,7 +103,7 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
       }
       window.onTelegramAuth = undefined;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanBotUsername, size]);
 
   if (isLoading) {
@@ -120,16 +119,12 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
     <div className="telegram-auth-container">
       {/* Основной виджет */}
       <div className="widget-section">
-        <div 
-          ref={containerRef} 
+        <div
+          ref={containerRef}
           className={`telegram-button-container ${!scriptLoaded ? 'loading' : ''}`}
         />
-        
-        {widgetError && (
-          <div className="error-message">
-            {widgetError}
-          </div>
-        )}
+
+        {widgetError && <div className="error-message">{widgetError}</div>}
       </div>
 
       {/* Fallback вариант */}
@@ -137,12 +132,8 @@ export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
         <div className="divider">
           <span>или</span>
         </div>
-        
-        <button 
-          className="manual-telegram-button"
-          onClick={handleManualTelegramAuth}
-          type="button"
-        >
+
+        <button className="manual-telegram-button" onClick={handleManualTelegramAuth} type="button">
           <span className="telegram-icon">📱</span>
           Открыть в Telegram
         </button>

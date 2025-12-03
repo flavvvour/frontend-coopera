@@ -49,7 +49,8 @@
 }
 
 /* Редактируемые поля */
-.editable-title, .editable-description {
+.editable-title,
+.editable-description {
   cursor: pointer;
   transition: all 0.2s;
   border-radius: 6px;
@@ -69,7 +70,8 @@
   flex-shrink: 0;
 }
 
-.editable-title:hover, .editable-description:hover {
+.editable-title:hover,
+.editable-description:hover {
   background: rgba(102, 126, 234, 0.08);
 }
 
@@ -124,7 +126,8 @@
   padding-top: 2px;
 }
 
-.btn-save, .btn-cancel {
+.btn-save,
+.btn-cancel {
   width: 38px;
   height: 38px;
   border: none;
@@ -246,120 +249,121 @@
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid #e5e7eb;
-}  .team-info h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: 2rem;
-    color: #1f2937;
-  }
-  
-  .team-info p {
-    margin: 0;
-    color: #6b7280;
-    font-size: 1.1rem;
-  }
-  
-  .team-stats {
-    display: flex;
-    gap: 2rem;
-  }
-  
-  .stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #3b82f6;
-  }
-  
-  .stat-label {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin-top: 0.25rem;
-  }
-  
-  /* Секция проектов */
-  .projects-section {
-    margin-bottom: 2rem;
-  }
-  
-  .projects-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-  }
-  
-  .projects-header h2 {
-    margin: 0;
-    color: #1f2937;
-    font-size: 1.5rem;
-  }
-  
-  .create-project-btn {
-    background: #10b981;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  
-  .create-project-btn:hover {
-    background: #059669;
-  }
-  
-  /* Табы проектов */
-  .projects-tabs {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-  }
-  
-  .project-tab {
-    background: white;
-    border: 1px solid #d1d5db;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 500;
-  }
-  
-  .project-tab:hover {
-    border-color: #3b82f6;
-    background: #f8fafc;
-  }
-  
-  .project-tab.active {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-  }
-  
-  .task-count {
-    background: #6b7280;
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-  
-  .project-tab.active .task-count {
-    background: white;
-    color: #3b82f6;
-  }
-  
+}
+.team-info h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  color: #1f2937;
+}
+
+.team-info p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.team-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* Секция проектов */
+.projects-section {
+  margin-bottom: 2rem;
+}
+
+.projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.projects-header h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.5rem;
+}
+
+.create-project-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.create-project-btn:hover {
+  background: #059669;
+}
+
+/* Табы проектов */
+.projects-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.project-tab {
+  background: white;
+  border: 1px solid #d1d5db;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.project-tab:hover {
+  border-color: #3b82f6;
+  background: #f8fafc;
+}
+
+.project-tab.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.task-count {
+  background: #6b7280;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.project-tab.active .task-count {
+  background: white;
+  color: #3b82f6;
+}
+
 /* Секция канбана */
 .kanban-section {
   background: transparent;
@@ -494,38 +498,39 @@
 
 .create-task-btn:hover {
   background: #2563eb;
-}  .no-project {
-    text-align: center;
-    padding: 3rem 2rem;
-    background: white;
-    border-radius: 12px;
-    border: 2px dashed #d1d5db;
-    color: #6b7280;
+}
+.no-project {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #d1d5db;
+  color: #6b7280;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .team-detail-page {
+    padding: 1rem;
   }
-  
-  /* Адаптивность */
-  @media (max-width: 768px) {
-    .team-detail-page {
-      padding: 1rem;
-    }
-    
-    .team-header {
-      flex-direction: column;
-      gap: 1rem;
-    }
-    
-    .team-stats {
-      align-self: flex-start;
-    }
-    
-    .projects-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1rem;
-    }
-    
-    .projects-tabs {
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
-    }
+
+  .team-header {
+    flex-direction: column;
+    gap: 1rem;
   }
+
+  .team-stats {
+    align-self: flex-start;
+  }
+
+  .projects-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .projects-tabs {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+}

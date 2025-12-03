@@ -1,6 +1,6 @@
 /**
  * Team Detail Page (FSD: pages/team-detail)
- * 
+ *
  * IMPLEMENTED:
  * - Team banner with cover image upload and cropping (16:4 aspect ratio)
  * - Inline editing for team name and description
@@ -9,7 +9,7 @@
  * - Task status updates via drag-and-drop (PUT /tasks/)
  * - Task card with points, assignee, and status
  * - Back navigation to teams list
- * 
+ *
  * FUTURE:
  * - Implement GET /tasks/?team_id= endpoint to load tasks from backend
  * - Implement PUT /teams/?team_id= to persist team name/description changes
@@ -28,7 +28,7 @@ import { CreateTaskForm, KanbanBoard } from '@/features/task';
 import { ImageCropModal } from '@/features/team/image-crop-modal';
 import { apiClient } from '@/shared/api';
 import { useUserStore } from '@/features/auth-by-telegram';
-import type { Team, Task, BackendTask } from '@/entities/team/index';
+import type { Team, Task, BackendTask, BackendMembership, TeamMember } from '@/entities/team/index';
 import changeIcon from '../../../assets/change-logo.svg';
 import folderIcon from '../../../assets/folder-logo.svg';
 import './team-detail.css';
@@ -51,19 +51,28 @@ export const TeamDetail: React.FC = () => {
   // Вычисляем activeProject динамически из team.projects
   const activeProject = team?.projects[0] || null;
 
+  // Проверяем, является ли текущий пользователь менеджером
+  const isManager =
+    team?.members.some(
+      member => member.userId === user?.id?.toString() && member.role === 'manager'
+    ) ?? false;
+
   // Загружаем команду и задачи с сервера при монтировании компонента
   React.useEffect(() => {
     const loadTeamData = async () => {
       if (!teamId) return;
-      
+
       setLoading(true);
       try {
         // Загружаем информацию о команде
         const teamData = await apiClient.getTeam(parseInt(teamId));
-        
+
         // Загружаем задачи команды
         const tasksData = await apiClient.getTasks(parseInt(teamId));
-        
+
+        // Загружаем участников команды
+        const membershipsData = await apiClient.getMemberships(parseInt(teamId));
+
         // Преобразуем задачи с бэкенда
         const tasks: Task[] = (tasksData || []).map((task: BackendTask) => ({
           id: task.id.toString(),
@@ -78,9 +87,19 @@ export const TeamDetail: React.FC = () => {
           createdAt: task.created_at || new Date().toISOString(),
           updatedAt: task.updated_at || new Date().toISOString(),
           projectId: '1',
-          tags: []
+          tags: [],
         }));
-        
+
+        // Преобразуем memberships
+        const members: TeamMember[] = (membershipsData || []).map((m: BackendMembership) => ({
+          id: m.id.toString(),
+          userId: m.user_id.toString(),
+          username: m.username || 'Пользователь',
+          role: (m.role === 'manager' ? 'manager' : 'member') as 'manager' | 'member',
+          joinedAt: m.joined_at,
+          points: m.points || 0,
+        }));
+
         // Формируем структуру Team
         const loadedTeam: Team = {
           id: teamData.id?.toString() || teamId,
@@ -88,7 +107,7 @@ export const TeamDetail: React.FC = () => {
           description: teamData.description || '',
           createdBy: teamData.created_by?.toString() || '',
           createdAt: teamData.created_at || new Date().toISOString(),
-          members: [], // TODO: загрузить через GET /memberships/
+          members,
           projects: [
             {
               id: '1',
@@ -96,11 +115,11 @@ export const TeamDetail: React.FC = () => {
               description: teamData.description || '',
               teamId: teamData.id?.toString() || teamId,
               createdAt: teamData.created_at || new Date().toISOString(),
-              tasks
-            }
-          ]
+              tasks,
+            },
+          ],
         };
-        
+
         setTeam(loadedTeam);
         setEditedName(loadedTeam.name);
         setEditedDescription(loadedTeam.description);
@@ -118,7 +137,7 @@ export const TeamDetail: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         const imageSrc = e.target?.result as string;
         setTempImageSrc(imageSrc);
         setIsCropModalOpen(true);
@@ -133,14 +152,14 @@ export const TeamDetail: React.FC = () => {
 
   const handleSaveName = () => {
     if (editedName.trim()) {
-      setTeam(prev => prev ? { ...prev, name: editedName.trim() } : null);
+      setTeam(prev => (prev ? { ...prev, name: editedName.trim() } : null));
       setIsEditingName(false);
       // FUTURE: Implement PUT /teams/?team_id= endpoint to update team name
     }
   };
 
   const handleSaveDescription = () => {
-    setTeam(prev => prev ? { ...prev, description: editedDescription.trim() } : null);
+    setTeam(prev => (prev ? { ...prev, description: editedDescription.trim() } : null));
     setIsEditingDescription(false);
     // FUTURE: Implement PUT /teams/?team_id= endpoint to update team description
   };
@@ -158,7 +177,10 @@ export const TeamDetail: React.FC = () => {
   if (!team) {
     return (
       <div className="team-detail">
-        <div className="error-state" style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
+        <div
+          className="error-state"
+          style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}
+        >
           Команда не найдена
         </div>
       </div>
@@ -189,23 +211,25 @@ export const TeamDetail: React.FC = () => {
       if (!prev) return null;
       return {
         ...prev,
-        projects: prev.projects.map(project => 
-          project.id === activeProject.id 
+        projects: prev.projects.map(project =>
+          project.id === activeProject.id
             ? {
                 ...project,
                 tasks: project.tasks.map(task =>
-                  task.id === taskId ? { ...task, ...updates, updatedAt: new Date().toISOString() } : task
-                )
+                  task.id === taskId
+                    ? { ...task, ...updates, updatedAt: new Date().toISOString() }
+                    : task
+                ),
               }
             : project
-        )
+        ),
       };
     });
 
     // Отправляем на бэкенд
     try {
       const userId = user?.id || 1;
-      
+
       // Формируем payload только с теми полями, которые были изменены
       const payload: {
         task_id?: number;
@@ -217,22 +241,22 @@ export const TeamDetail: React.FC = () => {
         current_user_id: number;
       } = {
         task_id: parseInt(taskId),
-        current_user_id: userId
+        current_user_id: userId,
       };
-      
+
       if (updates.status) payload.status = updates.status;
       if (updates.title !== undefined) payload.title = updates.title;
       if (updates.description !== undefined) payload.description = updates.description;
       if (updates.points !== undefined) payload.points = updates.points;
       if (updates.order !== undefined) payload.order = updates.order;
-      
+
       await apiClient.updateTask(parseInt(taskId), payload);
     } catch (error) {
       console.error('Failed to update task:', error);
-      
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const axiosError = error as any;
-      
+
       // Показываем детали ошибки пользователю
       const errorMessage = axiosError.response?.data?.error || 'Неизвестная ошибка';
       const errorDetails = axiosError.response?.data?.details?.join(', ') || '';
@@ -246,13 +270,13 @@ export const TeamDetail: React.FC = () => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const userId = parseInt((taskData as any).userId) || user?.id || 1;
-      
+
       const createdTask = await apiClient.createTask({
         title: taskData.title,
         description: taskData.description || '',
         team_id: parseInt(teamId),
         points: taskData.points || 0,
-        current_user_id: userId
+        current_user_id: userId,
       });
 
       // Добавляем задачу в локальное состояние
@@ -260,7 +284,7 @@ export const TeamDetail: React.FC = () => {
         ...taskData,
         id: createdTask.id?.toString() || Date.now().toString(),
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       setTeam(prev => {
@@ -271,7 +295,7 @@ export const TeamDetail: React.FC = () => {
             project.id === activeProject.id
               ? { ...project, tasks: [...project.tasks, newTask] }
               : project
-          )
+          ),
         };
       });
     } catch (error) {
@@ -289,7 +313,10 @@ export const TeamDetail: React.FC = () => {
 
       {/* Баннер команды с обложкой */}
       <div className="team-banner">
-        <div className="team-cover" style={{ backgroundImage: coverImage ? `url(${coverImage})` : 'none' }}>
+        <div
+          className="team-cover"
+          style={{ backgroundImage: coverImage ? `url(${coverImage})` : 'none' }}
+        >
           {!coverImage && <div className="cover-placeholder">Загрузите обложку команды</div>}
           <input
             type="file"
@@ -309,7 +336,7 @@ export const TeamDetail: React.FC = () => {
             </button>
           </div>
         </div>
-        
+
         <div className="team-info-banner">
           <div className="team-main-info">
             {isEditingName ? (
@@ -317,8 +344,8 @@ export const TeamDetail: React.FC = () => {
                 <input
                   type="text"
                   value={editedName}
-                  onChange={(e) => setEditedName(e.target.value)}
-                  onKeyDown={(e) => {
+                  onChange={e => setEditedName(e.target.value)}
+                  onKeyDown={e => {
                     if (e.key === 'Enter') handleSaveName();
                     if (e.key === 'Escape') handleCancelEditName();
                   }}
@@ -326,33 +353,84 @@ export const TeamDetail: React.FC = () => {
                   className="edit-input edit-title"
                 />
                 <div className="edit-actions">
-                  <button onClick={handleSaveName} className="btn-save" aria-label="Сохранить название">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <button
+                    onClick={handleSaveName}
+                    className="btn-save"
+                    aria-label="Сохранить название"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M13.5 4L6 11.5L2.5 8"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </button>
-                  <button onClick={handleCancelEditName} className="btn-cancel" aria-label="Отменить редактирование">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <button
+                    onClick={handleCancelEditName}
+                    className="btn-cancel"
+                    aria-label="Отменить редактирование"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 4L4 12M4 4L12 12"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </button>
                 </div>
               </div>
             ) : (
-              <h1 onClick={() => { setEditedName(team.name); setIsEditingName(true); }} className="editable-title">
+              <h1
+                onClick={() => {
+                  setEditedName(team.name);
+                  setIsEditingName(true);
+                }}
+                className="editable-title"
+              >
                 {team.name}
-                <svg className="edit-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12.75 2.25L15.75 5.25L5.25 15.75H2.25V12.75L12.75 2.25Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  className="edit-icon"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12.75 2.25L15.75 5.25L5.25 15.75H2.25V12.75L12.75 2.25Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </h1>
             )}
-            
+
             {isEditingDescription ? (
               <div className="edit-field">
                 <textarea
                   value={editedDescription}
-                  onChange={(e) => setEditedDescription(e.target.value)}
-                  onKeyDown={(e) => {
+                  onChange={e => setEditedDescription(e.target.value)}
+                  onKeyDown={e => {
                     if (e.key === 'Escape') handleCancelEditDescription();
                   }}
                   autoFocus
@@ -360,23 +438,74 @@ export const TeamDetail: React.FC = () => {
                   rows={2}
                 />
                 <div className="edit-actions">
-                  <button onClick={handleSaveDescription} className="btn-save" aria-label="Сохранить описание">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <button
+                    onClick={handleSaveDescription}
+                    className="btn-save"
+                    aria-label="Сохранить описание"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M13.5 4L6 11.5L2.5 8"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </button>
-                  <button onClick={handleCancelEditDescription} className="btn-cancel" aria-label="Отменить редактирование">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <button
+                    onClick={handleCancelEditDescription}
+                    className="btn-cancel"
+                    aria-label="Отменить редактирование"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 4L4 12M4 4L12 12"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   </button>
                 </div>
               </div>
             ) : (
-              <p onClick={() => { setEditedDescription(team.description); setIsEditingDescription(true); }} className="editable-description">
+              <p
+                onClick={() => {
+                  setEditedDescription(team.description);
+                  setIsEditingDescription(true);
+                }}
+                className="editable-description"
+              >
                 {team.description}
-                <svg className="edit-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11.5 2L14 4.5L4.5 14H2V11.5L11.5 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  className="edit-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11.5 2L14 4.5L4.5 14H2V11.5L11.5 2Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </p>
             )}
@@ -393,6 +522,7 @@ export const TeamDetail: React.FC = () => {
             onCreateTask={handleCreateTask}
             projectId={activeProject.id}
             teamMembers={team.members}
+            isManager={isManager}
           />
         </div>
       )}
