@@ -1,6 +1,5 @@
 /* teams-page.css */
 .teams-page {
-  padding: 2rem;
   width: 100%;
 }
 
@@ -11,8 +10,14 @@
   margin-bottom: 2rem;
 }
 
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .header-content h1 {
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   font-size: 2rem;
   color: #1f2937;
 }

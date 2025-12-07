@@ -32,7 +32,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({
         ...formData,
         projectId,
         status: 'open',
-        priority: 'medium',
         tags: [],
       });
       setFormData({

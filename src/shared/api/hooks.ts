@@ -21,18 +21,8 @@ export const queryKeys = {
 };
 
 /**
- * Загрузка списка команд пользователя
- */
-export const useTeams = (userId?: number) => {
-  return useQuery({
-    queryKey: queryKeys.teams(userId),
-    queryFn: () => apiClient.getTeams(userId),
-    enabled: !!userId, // Запрос только если есть userId
-  });
-};
-
-/**
- * Загрузка конкретной команды
+ * Загрузка конкретной команды с участниками
+ * Возвращает: { id, name, created_at, created_by, members: [{member_id, role}] }
  */
 export const useTeam = (teamId: number) => {
   return useQuery({

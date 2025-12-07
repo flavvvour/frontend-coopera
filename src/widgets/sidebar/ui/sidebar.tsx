@@ -1,6 +1,6 @@
 // components/sidebar/sidebar.tsx
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './sidebar.css';
 
 import dashboardIcon from '../../../assets/dashboard-logo.svg';
@@ -8,6 +8,7 @@ import teamIcon from '../../../assets/team-logo.svg';
 import settingsIcon from '../../../assets/settings-logo.svg';
 import burgerIcon from '../../../assets/burger-logo.svg';
 import exitIcon from '../../../assets/exit-logo.svg';
+import { useUserStore } from '@/features/auth-by-telegram';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface SidebarProps {
@@ -17,6 +18,8 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, clearUser } = useUserStore();
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: dashboardIcon, path: '/dashboard' },
@@ -34,6 +37,11 @@ export const Sidebar: React.FC<SidebarProps> = () => {
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const handleLogout = () => {
+    clearUser();
+    navigate('/login');
   };
 
   return (
@@ -73,14 +81,20 @@ export const Sidebar: React.FC<SidebarProps> = () => {
       {/* Футер */}
       <div className="sidebar-footer">
         <div className="user-info">
-          <div className="user-avatar">👤</div>
+          <div className="user-avatar">
+            {user?.username ? user.username.charAt(0).toUpperCase() : '👤'}
+          </div>
           {!isCollapsed && (
             <div className="user-details">
-              <span className="user-name">Пользователь</span>
+              <span className="user-name">{user?.username || 'Гость'}</span>
               <span className="user-points">100 баллов</span>
             </div>
           )}
-          <button className="logout-icon-btn" aria-label="Выйти">
+          <button 
+            className="logout-icon-btn" 
+            aria-label="Выйти"
+            onClick={handleLogout}
+          >
             <img src={exitIcon} alt="exit" className="logout-icon" />
           </button>
         </div>

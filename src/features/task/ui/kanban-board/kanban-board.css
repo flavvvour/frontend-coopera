@@ -103,7 +103,7 @@
   border-radius: 10px;
   padding: 1rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  cursor: grab;
+  cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #e5e7eb;
   position: relative;
@@ -117,6 +117,7 @@
 
 .task-card:active {
   cursor: grabbing;
+  transform: translateY(-1px);
 }
 
 /* Выполненная задача */
@@ -209,14 +210,54 @@
 }
 
 .task-assignee {
-  color: #6b7280;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #667eea30;
   font-weight: 500;
-  background: #f3f4f6;
-  padding: 0.25rem 0.625rem;
-  border-radius: 6px;
+  color: #4c51bf;
+  transition: all 0.2s;
+}
+
+.task-assignee:hover {
+  background: linear-gradient(135deg, #667eea25 0%, #764ba225 100%);
+  border-color: #667eea50;
+  transform: translateY(-1px);
+}
+
+.assignee-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.assignee-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.task-unassigned {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px dashed #d1d5db;
 }
 
 .task-tags {

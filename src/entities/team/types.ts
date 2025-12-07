@@ -15,7 +15,6 @@ export interface BackendTask {
   title: string;
   description?: string;
   status?: string;
-  priority?: string;
   points?: number;
   order?: number;
   assignee_id?: number;
@@ -71,7 +70,6 @@ export interface Task {
   title: string;
   description: string;
   status: 'open' | 'assigned' | 'in_review' | 'completed'; // Бэкендовские статусы
-  priority: 'low' | 'medium' | 'high';
   points: number;
   order?: number;
   assigneeId?: string;

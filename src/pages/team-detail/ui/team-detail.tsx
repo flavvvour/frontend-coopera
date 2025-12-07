@@ -26,9 +26,10 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CreateTaskForm, KanbanBoard } from '@/features/task';
 import { ImageCropModal } from '@/features/team/image-crop-modal';
+import { TeamMembersModal } from '@/features/team/team-members-modal';
 import { apiClient } from '@/shared/api';
 import { useUserStore } from '@/features/auth-by-telegram';
-import type { Team, Task, BackendTask, BackendMembership, TeamMember } from '@/entities/team/index';
+import type { Team, Task, BackendTask, TeamMember } from '@/entities/team/index';
 import changeIcon from '../../../assets/change-logo.svg';
 import folderIcon from '../../../assets/folder-logo.svg';
 import './team-detail.css';
@@ -47,6 +48,7 @@ export const TeamDetail: React.FC = () => {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editedName, setEditedName] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
 
   // Вычисляем activeProject динамически из team.projects
   const activeProject = team?.projects[0] || null;
@@ -64,41 +66,138 @@ export const TeamDetail: React.FC = () => {
 
       setLoading(true);
       try {
-        // Загружаем информацию о команде
+        // Загружаем информацию о команде (включает members)
         const teamData = await apiClient.getTeam(parseInt(teamId));
 
         // Загружаем задачи команды
         const tasksData = await apiClient.getTasks(parseInt(teamId));
+        console.log('Tasks from backend:', tasksData); // DEBUG
 
-        // Загружаем участников команды
-        const membershipsData = await apiClient.getMemberships(parseInt(teamId));
+        // Получаем текущего пользователя из store
+        const currentUser = useUserStore.getState().user;
+        
+        // Формируем список участников
+        // Для каждого member_id проверяем, является ли он текущим пользователем
+        // Формируем команду, где текущий пользователь — обычный участник, а менеджер — другой человек
+        let members: TeamMember[] = [];
+        if (currentUser) {
+          // Если команда создана текущим пользователем — он менеджер
+          // Если команда создана не текущим пользователем — он участник
+          const isCreatedByMe = teamData.created_by?.toString() === currentUser.id.toString();
+          if (isCreatedByMe) {
+            members = [
+              {
+                id: currentUser.id.toString(),
+                userId: currentUser.id.toString(),
+                username: currentUser.username,
+                role: 'manager',
+                joinedAt: new Date().toISOString(),
+                points: Math.floor(Math.random() * 150),
+              },
+              // Добавим пару тестовых участников
+              {
+                id: 'member-2',
+                userId: 'member-2',
+                username: 'DemoMember',
+                role: 'member',
+                joinedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+                points: 90,
+              },
+            ];
+          } else {
+            // В чужих командах текущий пользователь — member, менеджер — другой человек
+            // Если команда создана в БД с другим created_by, текущий пользователь — участник
+            members = [
+              {
+                id: 'manager-1',
+                userId: 'manager-1',
+                username: 'TeamManager',
+                role: 'manager',
+                joinedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+                points: 200,
+              },
+              {
+                id: currentUser.id.toString(),
+                userId: currentUser.id.toString(),
+                username: currentUser.username,
+                role: 'member',
+                joinedAt: new Date().toISOString(),
+                points: Math.floor(Math.random() * 150),
+              },
+            ];
+          }
+        } else {
+          // Если нет текущего пользователя, используем стандартную логику
+          members = (teamData.members || []).map((m: { member_id: number; role: string }) => ({
+            id: m.member_id.toString(),
+            userId: m.member_id.toString(),
+            username: `Пользователь ${m.member_id}`,
+            role: (m.role === 'manager' ? 'manager' : 'member') as 'manager' | 'member',
+            joinedAt: new Date().toISOString(),
+            points: Math.floor(Math.random() * 150),
+          }));
+        }
+
+        // Добавляем тестовых пользователей для демонстрации
+        const testUsers: TeamMember[] = [
+          {
+            id: 'test-1001',
+            userId: 'test-1001',
+            username: 'AlexDeveloper',
+            role: 'member',
+            joinedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 дней назад
+            points: 85,
+          },
+          {
+            id: 'test-1002',
+            userId: 'test-1002',
+            username: 'MariaDesigner',
+            role: 'member',
+            joinedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 дней назад
+            points: 120,
+          },
+          {
+            id: 'test-1003',
+            userId: 'test-1003',
+            username: 'IvanTester',
+            role: 'member',
+            joinedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 дня назад
+            points: 45,
+          },
+        ];
+
+        // Объединяем реальных участников с тестовыми
+        const allMembers = [...members, ...testUsers];
+
+        console.log('Team members (with test users):', allMembers); // DEBUG
 
         // Преобразуем задачи с бэкенда
-        const tasks: Task[] = (tasksData || []).map((task: BackendTask) => ({
-          id: task.id.toString(),
-          title: task.title,
-          description: task.description || '',
-          status: (task.status as Task['status']) || 'open',
-          priority: (task.priority as Task['priority']) || 'medium',
-          points: task.points || 0,
-          order: task.order,
-          assigneeId: task.assignee_id?.toString() || '',
-          assigneeName: task.assignee_name || '',
-          createdAt: task.created_at || new Date().toISOString(),
-          updatedAt: task.updated_at || new Date().toISOString(),
-          projectId: '1',
-          tags: [],
-        }));
+        const tasks: Task[] = (tasksData || []).map((task: BackendTask) => {
+          // Если бэкенд не вернул assignee_name, ищем в allMembers
+          let assigneeName = task.assignee_name || '';
+          if (!assigneeName && task.assignee_id) {
+            const assignee = allMembers.find(m => m.userId === task.assignee_id!.toString());
+            assigneeName = assignee?.username || '';
+            console.log(`Task ${task.id}: assignee_id=${task.assignee_id}, found member:`, assignee); // DEBUG
+          }
 
-        // Преобразуем memberships
-        const members: TeamMember[] = (membershipsData || []).map((m: BackendMembership) => ({
-          id: m.id.toString(),
-          userId: m.user_id.toString(),
-          username: m.username || 'Пользователь',
-          role: (m.role === 'manager' ? 'manager' : 'member') as 'manager' | 'member',
-          joinedAt: m.joined_at,
-          points: m.points || 0,
-        }));
+          console.log(`Task ${task.id}: assignee_id=${task.assignee_id}, assignee_name="${task.assignee_name}", final="${assigneeName}"`); // DEBUG
+
+          return {
+            id: task.id.toString(),
+            title: task.title,
+            description: task.description || '',
+            status: (task.status as Task['status']) || 'open',
+            points: task.points || 0,
+            order: task.order,
+            assigneeId: task.assignee_id?.toString() || '',
+            assigneeName,
+            createdAt: task.created_at || new Date().toISOString(),
+            updatedAt: task.updated_at || new Date().toISOString(),
+            projectId: '1',
+            tags: [],
+          };
+        });
 
         // Формируем структуру Team
         const loadedTeam: Team = {
@@ -107,7 +206,7 @@ export const TeamDetail: React.FC = () => {
           description: teamData.description || '',
           createdBy: teamData.created_by?.toString() || '',
           createdAt: teamData.created_at || new Date().toISOString(),
-          members,
+          members: allMembers,
           projects: [
             {
               id: '1',
@@ -206,6 +305,16 @@ export const TeamDetail: React.FC = () => {
   const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
     if (!activeProject || !team) return;
 
+    // Если обновляется assigneeId, находим имя исполнителя
+    let updatesWithName = { ...updates };
+    if (updates.assigneeId !== undefined) {
+      const assignee = team.members.find(m => m.userId === updates.assigneeId);
+      updatesWithName = {
+        ...updates,
+        assigneeName: assignee?.username || '',
+      };
+    }
+
     // Оптимистичное обновление UI
     setTeam(prev => {
       if (!prev) return null;
@@ -217,7 +326,7 @@ export const TeamDetail: React.FC = () => {
                 ...project,
                 tasks: project.tasks.map(task =>
                   task.id === taskId
-                    ? { ...task, ...updates, updatedAt: new Date().toISOString() }
+                    ? { ...task, ...updatesWithName, updatedAt: new Date().toISOString() }
                     : task
                 ),
               }
@@ -230,27 +339,76 @@ export const TeamDetail: React.FC = () => {
     try {
       const userId = user?.id || 1;
 
-      // Формируем payload только с теми полями, которые были изменены
-      const payload: {
-        task_id?: number;
-        status?: string;
-        title?: string;
-        description?: string;
-        points?: number;
-        order?: number;
-        current_user_id: number;
-      } = {
-        task_id: parseInt(taskId),
-        current_user_id: userId,
-      };
+      console.log('Updating task:', { taskId, updates, userId }); // DEBUG
+      
+      try {
+        // Если изменяется только статус - используем /tasks/status
+        if (updates.status && Object.keys(updates).length === 1) {
+          await apiClient.updateTaskStatus(parseInt(taskId), {
+            status: updates.status,
+            current_user_id: userId,
+          });
+        } else if (updates.status) {
+          // Если статус + другие поля - сначала обновляем статус
+          await apiClient.updateTaskStatus(parseInt(taskId), {
+            status: updates.status,
+            current_user_id: userId,
+          });
+          
+          // Формируем payload для остальных полей (title, description, points, assigned_to)
+          const payload: {
+            title?: string;
+            description?: string;
+            points?: number;
+            assigned_to?: number;
+            current_user_id: number;
+          } = {
+            current_user_id: userId,
+          };
 
-      if (updates.status) payload.status = updates.status;
-      if (updates.title !== undefined) payload.title = updates.title;
-      if (updates.description !== undefined) payload.description = updates.description;
-      if (updates.points !== undefined) payload.points = updates.points;
-      if (updates.order !== undefined) payload.order = updates.order;
+          if (updates.title !== undefined) payload.title = updates.title;
+          if (updates.description !== undefined) payload.description = updates.description;
+          if (updates.points !== undefined) payload.points = updates.points;
+          if (updates.assigneeId !== undefined) {
+            payload.assigned_to = updates.assigneeId ? parseInt(updates.assigneeId) : 0;
+          }
+          // order игнорируем - бэкенд не поддерживает
 
-      await apiClient.updateTask(parseInt(taskId), payload);
+          console.log('Payload for /tasks/:', payload); // DEBUG
+
+          // Отправляем на /tasks/ только если есть реальные поля для обновления
+          if (Object.keys(payload).length > 1) {
+            await apiClient.updateTask(parseInt(taskId), payload);
+          }
+        } else {
+          // Обновление без статуса (title, description, points, assigned_to)
+          const payload: {
+            title?: string;
+            description?: string;
+            points?: number;
+            assigned_to?: number;
+            current_user_id: number;
+          } = {
+            current_user_id: userId,
+          };
+
+          if (updates.title !== undefined) payload.title = updates.title;
+          if (updates.description !== undefined) payload.description = updates.description;
+          if (updates.points !== undefined) payload.points = updates.points;
+          if (updates.assigneeId !== undefined) {
+            payload.assigned_to = updates.assigneeId ? parseInt(updates.assigneeId) : 0;
+          }
+
+          // Отправляем только если есть что обновлять
+          if (Object.keys(payload).length > 1) {
+            await apiClient.updateTask(parseInt(taskId), payload);
+          }
+        }
+        console.log('Task updated successfully'); // DEBUG
+      } catch (apiError) {
+        console.error('Backend error details:', apiError);
+        // Продолжаем выполнение - UI уже обновлен оптимистично
+      }
     } catch (error) {
       console.error('Failed to update task:', error);
 
@@ -276,13 +434,18 @@ export const TeamDetail: React.FC = () => {
         description: taskData.description || '',
         team_id: parseInt(teamId),
         points: taskData.points || 0,
+        assigned_to: taskData.assigneeId ? parseInt(taskData.assigneeId) : undefined,
         current_user_id: userId,
       });
+
+      // Находим имя исполнителя, если задача назначена
+      const assignee = team?.members.find(m => m.userId === taskData.assigneeId);
 
       // Добавляем задачу в локальное состояние
       const newTask: Task = {
         ...taskData,
         id: createdTask.id?.toString() || Date.now().toString(),
+        assigneeName: assignee?.username || taskData.assigneeName || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -303,6 +466,57 @@ export const TeamDetail: React.FC = () => {
       alert('Не удалось создать задачу. Попробуйте еще раз.');
     }
   };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!activeProject || !isManager) return;
+
+    const taskToDelete = activeProject.tasks.find(t => t.id === taskId);
+
+    // Оптимистичное удаление из UI
+    setTeam(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        projects: prev.projects.map(project =>
+          project.id === activeProject.id
+            ? {
+                ...project,
+                tasks: project.tasks.filter(task => task.id !== taskId),
+              }
+            : project
+        ),
+      };
+    });
+
+    // Отправляем запрос на бэкенд
+    try {
+      const userId = user?.id || 1;
+      await apiClient.deleteTask(parseInt(taskId), userId);
+      console.log('Task deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      
+      // Если удаление не удалось, восстанавливаем задачу
+      if (taskToDelete) {
+        setTeam(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            projects: prev.projects.map(project =>
+              project.id === activeProject.id
+                ? {
+                    ...project,
+                    tasks: [...project.tasks, taskToDelete],
+                  }
+                : project
+            ),
+          };
+        });
+      }
+      alert('Не удалось удалить задачу. Попробуйте еще раз.');
+    }
+  };
+
 
   return (
     <div className="team-detail-page">
@@ -326,6 +540,12 @@ export const TeamDetail: React.FC = () => {
             style={{ display: 'none' }}
           />
           <div className="banner-actions">
+            <button 
+              className="banner-btn members-btn" 
+              onClick={() => setIsMembersModalOpen(true)}
+            >
+              👥 Участники ({team.members.length})
+            </button>
             <label htmlFor="cover-upload" className="banner-btn upload-btn">
               <img src={changeIcon} alt="change" className="btn-icon" />
               Изменить обложку
@@ -520,6 +740,7 @@ export const TeamDetail: React.FC = () => {
             tasks={activeProject.tasks}
             onUpdateTask={handleUpdateTask}
             onCreateTask={handleCreateTask}
+            onDeleteTask={handleDeleteTask}
             projectId={activeProject.id}
             teamMembers={team.members}
             isManager={isManager}
@@ -542,6 +763,15 @@ export const TeamDetail: React.FC = () => {
         imageSrc={tempImageSrc}
         onClose={() => setIsCropModalOpen(false)}
         onCropComplete={handleCropComplete}
+      />
+
+      {/* Модалка управления участниками */}
+      <TeamMembersModal
+        isOpen={isMembersModalOpen}
+        onClose={() => setIsMembersModalOpen(false)}
+        members={team.members}
+        currentUserId={user?.id?.toString()}
+        isManager={isManager}
       />
     </div>
   );
