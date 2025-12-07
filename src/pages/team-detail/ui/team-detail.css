@@ -192,7 +192,6 @@
 /* Общий стиль для обеих кнопок */
 .banner-btn {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   padding: 0.625rem 1.25rem;
   border-radius: 8px;
@@ -222,6 +221,19 @@
 
 .banner-btn:hover .btn-icon {
   opacity: 1;
+}
+
+.members-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.members-btn:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a4190 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
 .team-info-banner {
@@ -371,6 +383,11 @@
   padding: 0;
   box-shadow: none;
   border: none;
+}
+
+/* Team Members Section */
+.team-members-section {
+  margin-top: 2rem;
 }
 
 .project-header-section {

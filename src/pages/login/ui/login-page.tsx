@@ -1,5 +1,4 @@
 import React from 'react';
-// import { TelegramLoginButton } from '@/features/auth-by-telegram';
 import './login-page.css';
 
 export const LoginPage: React.FC = () => {
@@ -12,15 +11,16 @@ export const LoginPage: React.FC = () => {
         </div>
 
         <div className="telegram-auth-section">
-          {/* <h2>Войти через Telegram</h2> */}
-          {/* <p>Быстро и безопасно</p> */}
+          <h2>Войти через Telegram</h2>
+          <p>Безопасная авторизация через Telegram Mini App</p>
 
-          {/* Для локальной разработки используем кнопку с deep link */}
+          {/* Кнопка для открытия Telegram Mini App */}
           <button
             className="telegram-login-btn"
             onClick={() => {
-              const botUsername = 'test_coopera_bot'; // Ваш бот
-              window.open(`https://t.me/${botUsername}?start=auth`, '_blank');
+              const botUsername = 'test_coopera_bot';
+              // Открываем Mini App через бота
+              window.location.href = `https://t.me/${botUsername}?start=webapp`;
             }}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -30,8 +30,37 @@ export const LoginPage: React.FC = () => {
           </button>
 
           <p className="auth-hint">
-            Нажмите кнопку, чтобы открыть бота в Telegram и авторизоваться
+            После нажатия откроется Telegram Mini App для безопасной авторизации.
+            <br />
+            Никто не сможет войти под чужим аккаунтом!
           </p>
+
+          {/* Временная кнопка для тестирования БЕЗ настройки Mini App */}
+          {import.meta.env.DEV && (
+            <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '2px solid #e0e0e0' }}>
+              <p style={{ fontSize: '13px', color: '#666', marginBottom: '12px', fontWeight: 'bold' }}>
+                ⚙️ Режим разработки
+              </p>
+              <button
+                type="button"
+                className="telegram-login-btn"
+                style={{ 
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                }}
+                onClick={() => {
+                  // Генерируем случайный telegram_id для тестирования
+                  const testTelegramId = Math.floor(Math.random() * 1000000000);
+                  window.location.href = `/auth?telegram_id=${testTelegramId}&username=&first_name=Test&last_name=User`;
+                }}
+              >
+                🚀 Быстрый вход (для разработки)
+              </button>
+              <p style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
+                Пропустить настройку Telegram Mini App
+              </p>
+            </div>
+          )}
 
           {/* Для продакшена раскомментируйте виджет после настройки домена в BotFather */}
           {/* 

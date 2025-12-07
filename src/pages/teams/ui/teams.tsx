@@ -24,7 +24,6 @@ import React, { useState, useEffect } from 'react';
 import { CreateTeamForm } from '@/features/team/create-team-form';
 import { apiClient } from '@/shared/api';
 import { useUserStore } from '@/features/auth-by-telegram';
-import type { BackendTeam } from '@/entities/team';
 import './teams.css';
 
 // Упрощенная модель команды для списка
@@ -37,18 +36,6 @@ interface TeamListItem {
   createdAt: string;
 }
 
-// Парсинг команды с бэкенда в формат фронтенда
-const parseTeamFromBackend = (backendTeam: BackendTeam): TeamListItem => {
-  return {
-    id: backendTeam.id.toString(),
-    name: backendTeam.name,
-    description: '',
-    memberCount: 1,
-    projectCount: 0,
-    createdAt: backendTeam.created_at,
-  };
-};
-
 export const Teams: React.FC = () => {
   const [teams, setTeams] = useState<TeamListItem[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -60,17 +47,42 @@ export const Teams: React.FC = () => {
     try {
       setIsLoading(true);
 
-      // Передаем user_id для получения команд пользователя
-      const userId = user?.id || 1; // FUTURE: Replace hardcoded fallback with proper auth
-      const backendTeams = (await apiClient.getTeams(userId)) as unknown as BackendTeam[];
-
-      if (!Array.isArray(backendTeams)) {
+      const userId = user?.id;
+      console.log('Loading teams for user:', { user, userId }); // DEBUG
+      
+      if (!userId) {
+        console.warn('No user ID, skipping teams load');
         setTeams([]);
         return;
       }
 
-      // Преобразуем данные из формата бэкенда в наш формат
-      const transformedTeams: TeamListItem[] = backendTeams.map(parseTeamFromBackend);
+      // Получаем пользователя с командами (backend возвращает teams в getUser)
+      // Используем правильный telegram_id из store
+      const userTelegramId = user.telegram_id;
+      
+      if (!userTelegramId) {
+        console.warn('No telegram_id in user store');
+        setTeams([]);
+        return;
+      }
+      
+      const userData = await apiClient.getUser(userTelegramId);
+      console.log('User data with teams:', userData); // DEBUG
+      
+      if (!userData.teams || !Array.isArray(userData.teams)) {
+        setTeams([]);
+        return;
+      }
+
+      // Преобразуем данные команд из формата пользователя
+      const transformedTeams: TeamListItem[] = userData.teams.map((team: { id: number; name: string; role: string }) => ({
+        id: team.id.toString(),
+        name: team.name,
+        description: '',
+        memberCount: 1,
+        projectCount: 0,
+        createdAt: new Date().toISOString(), // Используем текущую дату как fallback
+      }));
 
       setTeams(transformedTeams);
     } catch (error) {
@@ -84,7 +96,7 @@ export const Teams: React.FC = () => {
   useEffect(() => {
     loadTeamsFromAPI();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.id]); // Перезагружаем команды при изменении user_id
 
   const handleCreateTeam = async (teamData: { name: string; description: string }) => {
     if (isCreating) return;
@@ -92,10 +104,12 @@ export const Teams: React.FC = () => {
     try {
       setIsCreating(true);
 
+      const userId = user?.id || 1; // Fallback для тестирования
+
       await apiClient.createTeam({
         name: teamData.name,
         description: teamData.description,
-        user_id: 1,
+        user_id: userId,
       });
 
       setIsCreateModalOpen(false);
@@ -173,6 +187,8 @@ export const Teams: React.FC = () => {
       <div className="teams-header">
         <div className="header-content">
           <h1>Мои команды</h1>
+          <p>Создавай команду мечты</p>
+
         </div>
         <button className="create-team-btn" onClick={() => setIsCreateModalOpen(true)}>
           + Создать команду

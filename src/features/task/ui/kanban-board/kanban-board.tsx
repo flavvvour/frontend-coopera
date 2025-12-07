@@ -42,12 +42,14 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Task, TeamMember } from '@/entities/team/index';
 import { CreateTaskForm } from '../create-task-form/create-task-form';
+import { TaskDetailModal } from '../task-detail-modal';
 import './kanban-board.css';
 
 interface KanbanBoardProps {
   tasks: Task[];
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
   onCreateTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onDeleteTask?: (taskId: string) => void;
   projectId: string;
   teamMembers: TeamMember[];
   isManager?: boolean; // Может ли пользователь создавать задачи
@@ -79,9 +81,10 @@ const DroppableColumn: React.FC<DroppableColumnProps> = ({ id, children, classNa
 interface TaskCardProps {
   task: Task;
   isDragging?: boolean;
+  onTaskClick?: (task: Task) => void;
 }
 
-const TaskCard: React.FC<TaskCardProps> = ({ task, isDragging = false }) => {
+const TaskCard: React.FC<TaskCardProps> = ({ task, isDragging = false, onTaskClick }) => {
   const {
     attributes,
     listeners,
@@ -97,6 +100,14 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, isDragging = false }) => {
     opacity: isDragging || isSortableDragging ? 0.5 : 1,
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Не открываем модалку при начале drag
+    if (isSortableDragging || isDragging) return;
+    
+    e.stopPropagation();
+    onTaskClick?.(task);
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -104,19 +115,26 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, isDragging = false }) => {
       {...attributes}
       {...listeners}
       className={`task-card ${task.status === 'completed' ? 'completed' : ''}`}
+      onClick={handleClick}
     >
       <div className="task-header">
-        <span className={`task-priority priority-${task.priority}`}>
-          {task.priority === 'high' ? '!' : task.priority === 'medium' ? '•' : ''}
-        </span>
-        <span className="task-points">{task.points}</span>
+        <span className="task-points">⭐ {task.points}</span>
       </div>
 
       <h5 className="task-title">{task.title}</h5>
       {task.description && <p className="task-description">{task.description}</p>}
 
       <div className="task-footer">
-        {task.assigneeName && <span className="task-assignee">{task.assigneeName}</span>}
+        {task.assigneeName ? (
+          <div className="task-assignee">
+            <div className="assignee-avatar">
+              {task.assigneeName.charAt(0).toUpperCase()}
+            </div>
+            <span className="assignee-name">{task.assigneeName}</span>
+          </div>
+        ) : (
+          <span className="task-unassigned">👤 Не назначено</span>
+        )}
       </div>
 
       {task.tags && task.tags.length > 0 && (
@@ -136,12 +154,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   tasks,
   onUpdateTask,
   onCreateTask,
+  onDeleteTask,
   projectId,
   teamMembers,
   isManager = true, // По умолчанию true для обратной совместимости
 }) => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -160,6 +180,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   };
 
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
   };
@@ -174,23 +198,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     if (!activeTask) return;
 
-    // Проверяем, перетаскиваем ли на колонку
-    const isOverColumn = columns.some(col => col.id === over.id);
-
-    if (isOverColumn) {
-      // Перетаскиваем на пустую колонку
-      const newStatus = over.id as Task['status'];
-      if (activeTask.status !== newStatus) {
-        onUpdateTask(activeTaskId, { status: newStatus });
-      }
-    } else {
-      // Проверяем, перетаскиваем ли на другую задачу
-      const overTask = tasks.find(t => t.id === over.id);
-      if (overTask && activeTask.status !== overTask.status) {
-        // Перетаскиваем на задачу в другой колонке - меняем статус
-        onUpdateTask(activeTaskId, { status: overTask.status });
-      }
-    }
+    // Не обновляем здесь, чтобы избежать множественных обновлений
+    // Обновление будет в handleDragEnd
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -201,48 +210,62 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     if (active.id === over.id) return;
 
     const activeTask = tasks.find(t => t.id === active.id);
-
-    // Проверяем, перетаскиваем ли на задачу или на колонку
-    const overTask = tasks.find(t => t.id === over.id);
-
     if (!activeTask) return;
 
-    // Если перетаскиваем на задачу в той же колонке (сортировка)
-    if (overTask && activeTask.status === overTask.status) {
-      const columnTasks = tasks
-        .filter(t => t.status === activeTask.status)
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
-
-      const oldIndex = columnTasks.findIndex(t => t.id === active.id);
-      const newIndex = columnTasks.findIndex(t => t.id === over.id);
-
-      if (oldIndex === newIndex) return;
-
-      // Рассчитываем новый order:
-      // Если перемещаем вниз, берем order целевой задачи + 1
-      // Если перемещаем вверх, берем order целевой задачи
-      let newOrder: number;
-
-      if (newIndex === 0) {
-        // Перемещаем в начало - order меньше первой задачи
-        newOrder = Math.max(0, (columnTasks[0].order || 0) - 1);
-      } else if (newIndex === columnTasks.length - 1) {
-        // Перемещаем в конец - order больше последней задачи
-        newOrder = (columnTasks[columnTasks.length - 1].order || columnTasks.length - 1) + 1;
-      } else if (oldIndex < newIndex) {
-        // Перемещаем вниз - между newIndex-1 и newIndex
-        const prevOrder = columnTasks[newIndex - 1]?.order || newIndex - 1;
-        const nextOrder = columnTasks[newIndex]?.order || newIndex;
-        newOrder = Math.floor((prevOrder + nextOrder) / 2);
-      } else {
-        // Перемещаем вверх - между newIndex и newIndex+1
-        const prevOrder = columnTasks[newIndex]?.order || newIndex;
-        const nextOrder = columnTasks[newIndex + 1]?.order || newIndex + 1;
-        newOrder = Math.floor((prevOrder + nextOrder) / 2);
+    // Проверяем, перетаскиваем ли на колонку
+    const isOverColumn = columns.some(col => col.id === over.id);
+    
+    if (isOverColumn) {
+      // Перетаскиваем на колонку - меняем статус
+      const newStatus = over.id as Task['status'];
+      if (activeTask.status !== newStatus) {
+        onUpdateTask(activeTask.id, { status: newStatus });
       }
-
-      onUpdateTask(activeTask.id, { order: newOrder });
+      return;
     }
+
+    // Проверяем, перетаскиваем ли на задачу
+    const overTask = tasks.find(t => t.id === over.id);
+    if (!overTask) return;
+
+    // Если задачи в разных колонках - меняем статус
+    if (activeTask.status !== overTask.status) {
+      onUpdateTask(activeTask.id, { status: overTask.status });
+      return;
+    }
+
+    // Если перетаскиваем на задачу в той же колонке (сортировка)
+    const columnTasks = tasks
+      .filter(t => t.status === activeTask.status)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    const oldIndex = columnTasks.findIndex(t => t.id === active.id);
+    const newIndex = columnTasks.findIndex(t => t.id === over.id);
+
+    if (oldIndex === newIndex) return;
+
+    // Рассчитываем новый order
+    let newOrder: number;
+
+    if (newIndex === 0) {
+      // Перемещаем в начало - order меньше первой задачи
+      newOrder = Math.max(0, (columnTasks[0].order || 0) - 1);
+    } else if (newIndex === columnTasks.length - 1) {
+      // Перемещаем в конец - order больше последней задачи
+      newOrder = (columnTasks[columnTasks.length - 1].order || columnTasks.length - 1) + 1;
+    } else if (oldIndex < newIndex) {
+      // Перемещаем вниз - между newIndex-1 и newIndex
+      const prevOrder = columnTasks[newIndex - 1]?.order || newIndex - 1;
+      const nextOrder = columnTasks[newIndex]?.order || newIndex;
+      newOrder = Math.floor((prevOrder + nextOrder) / 2);
+    } else {
+      // Перемещаем вверх - между newIndex и newIndex+1
+      const prevOrder = columnTasks[newIndex]?.order || newIndex;
+      const nextOrder = columnTasks[newIndex + 1]?.order || newIndex + 1;
+      newOrder = Math.floor((prevOrder + nextOrder) / 2);
+    }
+
+    onUpdateTask(activeTask.id, { order: newOrder });
   };
 
   const activeTask = activeId ? tasks.find(task => task.id === activeId) : null;
@@ -284,7 +307,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 >
                   <DroppableColumn id={column.id} className="column-content">
                     {columnTasks.map(task => (
-                      <TaskCard key={task.id} task={task} />
+                      <TaskCard key={task.id} task={task} onTaskClick={handleTaskClick} />
                     ))}
                   </DroppableColumn>
                 </SortableContext>
@@ -293,7 +316,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           })}
         </div>
 
-        <DragOverlay>{activeTask ? <TaskCard task={activeTask} isDragging /> : null}</DragOverlay>
+        <DragOverlay>
+          {activeTask ? <TaskCard task={activeTask} isDragging /> : null}
+        </DragOverlay>
 
         <CreateTaskForm
           isOpen={isCreateTaskOpen}
@@ -301,6 +326,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           onCreateTask={onCreateTask}
           projectId={projectId}
           teamMembers={teamMembers}
+        />
+
+        <TaskDetailModal
+          task={selectedTask}
+          isOpen={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onUpdateTask={onUpdateTask}
+          onDeleteTask={onDeleteTask}
+          teamMembers={teamMembers}
+          isManager={isManager}
         />
       </div>
     </DndContext>

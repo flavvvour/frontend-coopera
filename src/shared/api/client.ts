@@ -4,10 +4,12 @@
  * IMPLEMENTED:
  * - Axios-based HTTP client with base URL configuration
  * - Response error interceptor for consistent error handling
- * - Teams API: getTeams, createTeam, getTeam, deleteTeam
+ * - Teams API: getTeam (by team_id), createTeam, deleteTeam
  * - Tasks API: getTasks, createTask, updateTask
  * - Memberships API: addMember, removeMember
- * - Users API: createUser, getUser, getUserByUsername
+ * - Users API: createUser, getUser (by telegram_id or username), getUserByUsername
+ *
+ * NOTE: Для получения списка команд пользователя используйте getUser(telegram_id).teams
  *
  * FUTURE:
  * - Implement request/response logging for development mode only
@@ -36,32 +38,23 @@ class ApiClient {
     this.axiosInstance.interceptors.response.use(
       response => response,
       (error: AxiosError) => {
-        console.error('API Error:', {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          body: error.response?.data,
-          url: error.config?.url,
-        });
+        // Логируем только в development режиме
+        if (import.meta.env.DEV) {
+          console.error('API Error:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            body: error.response?.data,
+            url: error.config?.url,
+          });
+        }
         throw error;
       }
     );
   }
 
-  // Teams API -> GET (teams) POST, GET(team), DELETE
-  async getTeams(userId?: number) {
-    try {
-      if (userId) {
-        const response = await this.axiosInstance.get(`/teams/?user_id=${userId}`);
-        return response.data;
-      }
-      // Если user_id не передан, возвращаем пустой массив
-      return [];
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      // Backend требует обязательный параметр (team_id или user_id)
-      return [];
-    }
-  }
+  // Teams API -> GET (team) POST, DELETE
+  // Примечание: Для получения списка команд пользователя используйте getUser(telegram_id).teams
+  // getTeams больше не поддерживается - используйте только getTeam(team_id)
 
   async createTeam(data: { name: string; description: string; user_id: number }) {
     const response = await this.axiosInstance.post('/teams/', data);
@@ -69,6 +62,7 @@ class ApiClient {
   }
 
   async getTeam(teamId: number) {
+    // Возвращает команду с участниками: { id, name, created_at, created_by, members: [{member_id, role}] }
     const response = await this.axiosInstance.get(`/teams/?team_id=${teamId}`);
     return response.data;
   }
@@ -91,6 +85,7 @@ class ApiClient {
     description: string;
     team_id: number;
     points: number;
+    assigned_to?: number;
     current_user_id: number;
   }) {
     const response = await this.axiosInstance.post('/tasks/', data);
@@ -100,15 +95,38 @@ class ApiClient {
   async updateTask(
     taskId: number,
     data: {
-      status?: string;
       title?: string;
       description?: string;
       points?: number;
-      order?: number;
+      assigned_to?: number;
       current_user_id: number;
     }
   ) {
-    const response = await this.axiosInstance.patch(`/tasks/?task_id=${taskId}`, data);
+    const response = await this.axiosInstance.patch(`/tasks/`, {
+      task_id: taskId,
+      ...data,
+    });
+    return response.data;
+  }
+
+  async updateTaskStatus(
+    taskId: number,
+    data: {
+      status: string;
+      current_user_id: number;
+    }
+  ) {
+    const response = await this.axiosInstance.patch(`/tasks/status`, {
+      task_id: taskId,
+      ...data,
+    });
+    return response.data;
+  }
+
+  async deleteTask(taskId: number, currentUserId: number) {
+    const response = await this.axiosInstance.delete(
+      `/tasks/?task_id=${taskId}&current_user_id=${currentUserId}`
+    );
     return response.data;
   }
 
