@@ -9,6 +9,16 @@ export default defineConfig({
   server: {
     port: 3000,
     open: false,
+    // Добавляем проксирование для API запросов
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080', // ваш бэкенд сервер
+        changeOrigin: true,
+        secure: false,
+        // Опционально: можно переписать путь, если нужно
+        // rewrite: (path) => path.replace(/^\/api/, '')
+      },
+    },
   },
   resolve: {
     alias: {

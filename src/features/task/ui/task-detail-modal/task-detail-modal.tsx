@@ -1,24 +1,22 @@
 /**
  * Task Detail Modal (FSD: features/task)
- *
- * Модальное окно для просмотра и редактирования задачи
- * - Назначение на участников команды
- * - Изменение статуса
- * - Редактирование описания
  */
-
 import React, { useState, useEffect } from 'react';
-import type { Task, TeamMember } from '@/entities/team/index';
+import type { TeamMember } from '@/entities/team';
+import type { Task, UpdateTaskRequest } from '@/entities/task';
+import { userMapper } from '@/shared/lib/userMapper';
 import './task-detail-modal.css';
 
 interface TaskDetailModalProps {
   task: Task | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
-  onDeleteTask?: (taskId: string) => void;
+  onUpdateTask: (taskId: number, updates: Partial<UpdateTaskRequest>) => void;
+  onDeleteTask?: (taskId: number) => void;
   teamMembers: TeamMember[];
+  userMap: Record<number, string>;
   isManager?: boolean;
+  currentUserId?: number;
 }
 
 export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
@@ -29,11 +27,57 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onDeleteTask,
   teamMembers,
   isManager = false,
+  currentUserId,
 }) => {
   const [isAssigneeDropdownOpen, setIsAssigneeDropdownOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [usernameCache, setUsernameCache] = useState<Record<number, string>>({});
 
-  // Закрываем dropdown при клике вне его
+  useEffect(() => {
+    async function loadUsernames() {
+      if (!task || !isOpen) return;
+
+      const telegramIds = new Set<number>();
+
+      // task.assignedToMember - это telegram_id (416604955)
+      if (task.assignedToMember) telegramIds.add(task.assignedToMember);
+      if (task.createdByUser) telegramIds.add(task.createdByUser);
+
+      // teamMembers должны содержать telegram_id
+      teamMembers.forEach(member => {
+        if (member.memberId) telegramIds.add(member.memberId);
+      });
+
+      if (telegramIds.size > 0) {
+        try {
+          const usernames = await userMapper.getUsernames(Array.from(telegramIds));
+          console.log('📱 Загруженные username:', usernames);
+          setUsernameCache(prev => ({ ...prev, ...usernames }));
+        } catch (error) {
+          console.error('Ошибка загрузки имен пользователей:', error);
+        }
+      }
+    }
+
+    loadUsernames();
+  }, [task, isOpen, teamMembers]);
+
+  // ✅ ОБНОВЛЕННАЯ отладочная информация - используем usernameCache вместо userMap
+  useEffect(() => {
+    if (task && isOpen) {
+      console.log('🔍 TaskDetailModal DEBUG:', {
+        taskId: task.id,
+        taskassignedToMember: task.assignedToMember,
+        assigneeName: task.assignedToMember ? usernameCache[task.assignedToMember] : 'нет',
+        usernameCacheEntries: Object.entries(usernameCache),
+        teamMembers: teamMembers.map(m => ({
+          memberId: m.memberId,
+          hasUsername: !!usernameCache[m.memberId],
+        })),
+      });
+    }
+  }, [task, isOpen, usernameCache, teamMembers]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -48,7 +92,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     }
   }, [isAssigneeDropdownOpen]);
 
-  // Закрываем модалку при нажатии Escape
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -64,20 +107,36 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   if (!isOpen || !task) return null;
 
-  const handleAssigneeChange = (userId: string) => {
-    const member = teamMembers.find(m => m.userId === userId);
+  // ✅ ИСПРАВЛЕННАЯ функция назначения
+  const handleAssigneeChange = (memberId: number) => {
+    if (!isManager || !currentUserId) return;
+
+    console.log('🎯 Изменение исполнителя:', {
+      taskId: task.id,
+      memberId,
+      currentUserId,
+    });
+
+    // ✅ Преобразуем в undefined вместо null
+    const assignedToMemberValue = memberId === null ? undefined : memberId;
+
     onUpdateTask(task.id, {
-      assigneeId: userId,
-      assigneeName: member?.username || 'Неизвестный пользователь',
+      assignedToMember: assignedToMemberValue, // ✅ number | undefined
+      assigned_to: assignedToMemberValue, // ✅ number | undefined
     });
     setIsAssigneeDropdownOpen(false);
   };
 
+  // ✅ ИСПРАВЛЕННАЯ функция снятия назначения
   const handleUnassign = () => {
-    if (!isManager) return;
+    if (!isManager || !currentUserId) return;
+
+    console.log('🎯 Снятие назначения с задачи:', task.id);
+
+    // ✅ Используем undefined вместо null
     onUpdateTask(task.id, {
-      assigneeId: '',
-      assigneeName: '',
+      assignedToMember: undefined, // ✅ undefined вместо null
+      assigned_to: undefined, // ✅ undefined вместо null
     });
     setIsAssigneeDropdownOpen(false);
   };
@@ -100,6 +159,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       assigned: 'В работе',
       in_review: 'На проверке',
       completed: 'Выполнено',
+      archived: 'В архиве',
     };
     return statusMap[status] || status;
   };
@@ -110,9 +170,15 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       assigned: '#f59e0b',
       in_review: '#8b5cf6',
       completed: '#10b981',
+      archived: '#6b7280',
     };
     return colorMap[status] || '#6b7280';
   };
+
+  // ✅ ИСПРАВЛЕНО: Получаем имя из usernameCache
+  const assigneeName = task?.assignedToMember
+    ? usernameCache[task.assignedToMember] || `Загрузка...`
+    : undefined;
 
   return (
     <div className="task-detail-backdrop" onClick={handleBackdropClick}>
@@ -120,10 +186,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
         <div className="modal-header">
           <div className="modal-title-section">
             <h2>{task.title}</h2>
-            <span
-              className="status-badge"
-              style={{ backgroundColor: getStatusColor(task.status) }}
-            >
+            <span className="status-badge" style={{ backgroundColor: getStatusColor(task.status) }}>
               {getStatusLabel(task.status)}
             </span>
           </div>
@@ -142,81 +205,103 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                   <button
                     className="assignee-button"
                     onClick={() => setIsAssigneeDropdownOpen(!isAssigneeDropdownOpen)}
+                    disabled={!currentUserId}
                   >
-                  {task.assigneeName ? (
-                    <div className="assignee-display">
-                      <div className="assignee-avatar-small">
-                        {task.assigneeName.charAt(0).toUpperCase()}
+                    {assigneeName ? (
+                      <div className="assignee-display">
+                        <div className="assignee-avatar-small">
+                          {assigneeName.charAt(0).toUpperCase()}
+                        </div>
+                        <span>{assigneeName}</span>
                       </div>
-                      <span>{task.assigneeName}</span>
-                    </div>
-                  ) : (
-                    <div className="assignee-display">
-                      <span className="unassigned-text">👤 Не назначено</span>
+                    ) : (
+                      <div className="assignee-display">
+                        <span className="unassigned-text">👤 Не назначено</span>
+                      </div>
+                    )}
+                    <span className="dropdown-arrow">▼</span>
+                  </button>
+
+                  {isAssigneeDropdownOpen && currentUserId && (
+                    <div className="assignee-dropdown">
+                      {task.assignedToMember && (
+                        <>
+                          <button
+                            className="assignee-option unassign-option"
+                            onClick={handleUnassign}
+                          >
+                            <span>Снять назначение</span>
+                          </button>
+                          <div className="dropdown-divider"></div>
+                        </>
+                      )}
+                      {teamMembers.map(member => {
+                        // ✅ ИСПРАВЛЕНО: Получаем имя из usernameCache
+                        const memberName =
+                          usernameCache[member.memberId] || `@user_${member.memberId}`;
+
+                        return (
+                          <button
+                            key={member.memberId}
+                            className={`assignee-option ${
+                              task.assignedToMember === member.memberId ? 'selected' : ''
+                            }`}
+                            onClick={() => handleAssigneeChange(member.memberId)}
+                          >
+                            <div className="assignee-avatar-small">
+                              {memberName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="assignee-info">
+                              <span className="assignee-name">{memberName}</span>
+                              <span className="assignee-role">
+                                {member.role === 'manager' ? '👑 Менеджер' : '👤 Участник'}
+                              </span>
+                            </div>
+                            {task.assignedToMember === member.memberId && (
+                              <span className="check-mark">✓</span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
-                  <span className="dropdown-arrow">▼</span>
-                </button>
-
-                {isAssigneeDropdownOpen && (
-                  <div className="assignee-dropdown">
-                    {task.assigneeName && (
-                      <>
-                        <button
-                          className="assignee-option unassign-option"
-                          onClick={handleUnassign}
-                        >
-                          <span>Снять назначение</span>
-                        </button>
-                        <div className="dropdown-divider"></div>
-                      </>
-                    )}
-                    {teamMembers.map(member => (
-                      <button
-                        key={member.userId}
-                        className={`assignee-option ${
-                          task.assigneeId === member.userId ? 'selected' : ''
-                        }`}
-                        onClick={() => handleAssigneeChange(member.userId)}
-                      >
-                        <div className="assignee-avatar-small">
-                          {member.username.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="assignee-info">
-                          <span className="assignee-name">{member.username}</span>
-                          <span className="assignee-role">
-                            {member.role === 'manager' ? '👑 Менеджер' : '👤 Участник'}
-                          </span>
-                        </div>
-                        {task.assigneeId === member.userId && (
-                          <span className="check-mark">✓</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
                 </div>
               ) : (
                 <div className="assignee-display-readonly">
-                  {task.assigneeName ? (
+                  {assigneeName ? (
                     <>
                       <div className="assignee-avatar-small">
-                        {task.assigneeName.charAt(0).toUpperCase()}
+                        {assigneeName.charAt(0).toUpperCase()}
                       </div>
-                      <span>{task.assigneeName}</span>
+                      <span>{assigneeName}</span>
                     </>
                   ) : (
                     <span className="unassigned-text">👤 Не назначено</span>
                   )}
                 </div>
               )}
+
+              {/* ✅ ОБНОВЛЕННАЯ отладочная информация - используем usernameCache */}
+              <div
+                style={{
+                  fontSize: '11px',
+                  color: '#666',
+                  marginTop: '5px',
+                  padding: '3px',
+                  background: '#f5f5f5',
+                  borderRadius: '3px',
+                }}
+              >
+                ID: {task.assignedToMember || 'не назначено'} | Username:{' '}
+                {task.assignedToMember ? usernameCache[task.assignedToMember] || 'не найден' : 'N/A'}
+              </div>
             </div>
 
             {/* Очки */}
             <div className="info-section">
               <label className="info-label">Очки</label>
               <div className="info-value">
-                <span className="points-display">⭐ {task.points}</span>
+                <span className="points-display">⭐ {task.points || 0}</span>
               </div>
             </div>
           </div>
@@ -229,20 +314,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             </div>
           )}
 
-          {/* Теги */}
-          {task.tags && task.tags.length > 0 && (
-            <div className="tags-section">
-              <label className="info-label">Теги</label>
-              <div className="task-tags">
-                {task.tags.map(tag => (
-                  <span key={tag} className="tag">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Даты */}
           <div className="dates-section">
             <div className="date-info">
@@ -251,32 +322,28 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 {new Date(task.createdAt).toLocaleDateString('ru-RU')}
               </span>
             </div>
-            <div className="date-info">
-              <span className="date-label">Обновлено:</span>
-              <span className="date-value">
-                {new Date(task.updatedAt).toLocaleDateString('ru-RU')}
-              </span>
-            </div>
+            {task.updatedAt && (
+              <div className="date-info">
+                <span className="date-label">Обновлено:</span>
+                <span className="date-value">
+                  {new Date(task.updatedAt).toLocaleDateString('ru-RU')}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Кнопка удаления (только для менеджера) */}
+          {/* Кнопка удаления */}
           {isManager && onDeleteTask && (
             <div className="modal-actions">
               {!showDeleteConfirm ? (
-                <button
-                  className="delete-task-button"
-                  onClick={() => setShowDeleteConfirm(true)}
-                >
+                <button className="delete-task-button" onClick={() => setShowDeleteConfirm(true)}>
                   🗑️ Удалить задачу
                 </button>
               ) : (
                 <div className="delete-confirm">
                   <p>Вы уверены, что хотите удалить эту задачу?</p>
                   <div className="confirm-buttons">
-                    <button
-                      className="confirm-delete-button"
-                      onClick={handleDeleteTask}
-                    >
+                    <button className="confirm-delete-button" onClick={handleDeleteTask}>
                       Да, удалить
                     </button>
                     <button

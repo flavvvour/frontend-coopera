@@ -1,24 +1,26 @@
 /**
  * Team Members Modal (FSD: features/team)
- *
- * Модальное окно для управления участниками команды
- * - Просмотр всех участников
- * - Приглашение новых участников (для менеджера)
- * - Удаление участников (для менеджера)
  */
-
 import React, { useState, useEffect } from 'react';
 import type { TeamMember } from '@/entities/team';
 import './team-members-modal.css';
 
+// Дополнительный тип для отображения
+export interface TeamMemberWithUser extends Omit<TeamMember, 'username'> {
+  username: string; // ✅ Обязательное поле
+  points?: number;
+  userId?: number; // Добавляем для совместимости
+}
+
 interface TeamMembersModalProps {
   isOpen: boolean;
   onClose: () => void;
-  members: TeamMember[];
-  currentUserId?: string;
+  members: TeamMemberWithUser[];
+  currentUserId?: number;
   isManager?: boolean;
-  onRemoveMember?: (userId: string) => void;
+  onRemoveMember?: (memberId: number) => void;
   onInviteMember?: (username: string) => void;
+  userMap?: Record<number, string>;
 }
 
 export const TeamMembersModal: React.FC<TeamMembersModalProps> = ({
@@ -29,11 +31,11 @@ export const TeamMembersModal: React.FC<TeamMembersModalProps> = ({
   isManager = false,
   onRemoveMember,
   onInviteMember,
+  userMap = {},
 }) => {
   const [inviteUsername, setInviteUsername] = useState('');
   const [isInviting, setIsInviting] = useState(false);
 
-  // Закрываем модалку при нажатии Escape
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -49,12 +51,24 @@ export const TeamMembersModal: React.FC<TeamMembersModalProps> = ({
 
   if (!isOpen) return null;
 
-  const sortedMembers = [...members].sort((a, b) => {
-    // Менеджеры в начале
+  // Обогащаем участников username из userMap если нет
+  const membersWithUsernames = members.map(member => {
+    // Если username уже есть, оставляем
+    if (member.username) return member;
+
+    // Иначе берем из userMap или создаем дефолтный
+    const username = userMap[member.memberId] || `User #${member.memberId}`;
+    return {
+      ...member,
+      username,
+    };
+  });
+
+  // Сортируем менеджеров в начало
+  const sortedMembers = [...membersWithUsernames].sort((a, b) => {
     if (a.role === 'manager' && b.role !== 'manager') return -1;
     if (a.role !== 'manager' && b.role === 'manager') return 1;
-    // Затем по username
-    return a.username.localeCompare(b.username);
+    return (a.username || '').localeCompare(b.username || '');
   });
 
   const managersCount = members.filter(m => m.role === 'manager').length;
@@ -102,7 +116,7 @@ export const TeamMembersModal: React.FC<TeamMembersModalProps> = ({
         </div>
 
         <div className="members-modal-body">
-          {/* Форма приглашения (только для менеджера) */}
+          {/* Форма приглашения */}
           {isManager && onInviteMember && (
             <div className="invite-section">
               <div className="invite-form">
@@ -125,42 +139,36 @@ export const TeamMembersModal: React.FC<TeamMembersModalProps> = ({
                   {isInviting ? 'Приглашаю...' : '+ Пригласить'}
                 </button>
               </div>
-              <p className="invite-hint">
-                💡 Участник должен быть зарегистрирован в системе
-              </p>
+              <p className="invite-hint">💡 Участник должен быть зарегистрирован в системе</p>
             </div>
           )}
 
           {/* Список участников */}
           <div className="members-modal-list">
             {sortedMembers.map(member => {
-              const isCurrentUser = member.userId === currentUserId;
+              const isCurrentUser = member.memberId === currentUserId;
               const canRemove = isManager && !isCurrentUser && member.role !== 'manager';
 
               return (
                 <div
-                  key={member.userId}
+                  key={member.id}
                   className={`member-item ${isCurrentUser ? 'current-user' : ''}`}
                 >
                   <div className="member-avatar-modal">
-                    {member.username.charAt(0).toUpperCase()}
+                    {(member.username || 'U').charAt(0).toUpperCase()}
                   </div>
 
                   <div className="member-info-modal">
                     <div className="member-name-row">
-                      <span className="member-name-text">{member.username}</span>
+                      <span className="member-name-text">
+                        {member.username || `User #${member.memberId}`}
+                      </span>
                       {isCurrentUser && <span className="you-badge-modal">Вы</span>}
                     </div>
                     <div className="member-details-row">
                       <span className={`role-badge-modal ${member.role}`}>
                         {member.role === 'manager' ? '👑 Менеджер' : '👤 Участник'}
                       </span>
-                      {member.points !== undefined && (
-                        <>
-                          <span className="detail-divider-modal">•</span>
-                          <span className="member-points-modal">⭐ {member.points}</span>
-                        </>
-                      )}
                     </div>
                   </div>
 
@@ -169,7 +177,7 @@ export const TeamMembersModal: React.FC<TeamMembersModalProps> = ({
                       className="remove-btn-modal"
                       onClick={() => {
                         if (window.confirm(`Удалить ${member.username} из команды?`)) {
-                          onRemoveMember(member.userId);
+                          onRemoveMember(member.memberId);
                         }
                       }}
                       aria-label="Удалить участника"
