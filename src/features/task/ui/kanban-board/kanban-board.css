@@ -2,6 +2,7 @@
 .kanban-board {
   width: 100%;
   padding: 1.5rem;
+  /* overflow-x: auto; */
 }
 
 .kanban-actions {
@@ -30,10 +31,11 @@
 
 .kanban-columns {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(20px, 300px));
   gap: 1.5rem;
   min-height: 600px;
   align-items: start;
+  justify-content: center;
 }
 
 .kanban-column {
@@ -55,6 +57,7 @@
   background: white;
   border-radius: 12px 12px 0 0;
   border-bottom: 2px solid #e9ecef;
+  
 }
 
 .column-title {
@@ -95,6 +98,7 @@
   flex-direction: column;
   gap: 0.875rem;
   min-height: 200px;
+
 }
 
 /* Карточка задачи */
@@ -107,6 +111,7 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid #e5e7eb;
   position: relative;
+  overflow: hidden;
 }
 
 .task-card:hover {
@@ -320,4 +325,72 @@
 .task-card.dragging {
   opacity: 0.5;
   transform: rotate(5deg);
+}
+
+/* ✅ ИСПРАВЛЕНИЕ: Стили для кликабельной области назначения */
+.task-assignee,
+.task-unassigned {
+  position: relative;
+  z-index: 2;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+/* Убедитесь, что нет перекрывающих элементов */
+.task-card {
+  position: relative;
+}
+
+/* Дополнительные стили для визуальной обратной связи */
+.task-assignee:active {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, #667eea30 0%, #764ba230 100%) !important;
+}
+
+.task-unassigned:active {
+  transform: scale(0.98);
+  background: #f1f5f9 !important;
+}
+
+/* Улучшенные ховер-эффекты */
+.task-assignee:hover {
+  background: linear-gradient(135deg, #667eea25 0%, #764ba225 100%) !important;
+  border-color: #667eea70 !important;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+}
+
+.task-unassigned:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #64748b !important;
+  border-style: solid !important;
+}
+
+/* Убедимся, что текст не выделяется при клике */
+.task-assignee span,
+.task-unassigned span {
+  pointer-events: none;
+}
+
+.task-assignee,
+.task-unassigned {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  user-select: none !important;
+  position: relative !important;
+  z-index: 1000 !important;
+}
+
+/* Уберите все возможные блокировки */
+.task-card * {
+  pointer-events: auto !important;
+}
+
+/* Отключите перетаскивание только для области назначения */
+.task-assignee,
+.task-unassigned {
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
 }

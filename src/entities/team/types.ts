@@ -1,82 +1,33 @@
-// ==================== Backend API Types ====================
-// Типы для данных, приходящих с бэкенда (snake_case с json тегами)
-
-export interface BackendTeam {
-  id: number;
-  name: string;
-  description?: string;
-  created_at: string;
-  created_by: number;
-}
-
-export interface BackendTask {
-  id: number;
-  team_id?: number;
-  title: string;
-  description?: string;
-  status?: string;
-  points?: number;
-  order?: number;
-  assignee_id?: number;
-  assignee_name?: string;
-  created_at?: string;
-  updated_at?: string;
-  created_by?: number;
-}
-
-export interface BackendMembership {
-  id: number;
-  team_id: number;
-  user_id: number;
-  role: string;
-  joined_at: string;
-  points?: number;
-  username?: string;
-}
-
-// ==================== Frontend Types ====================
-// Типы для использования в приложении (camelCase)
-
 export interface Team {
-  id: string;
+  id?: number;
   name: string;
-  description: string;
-  createdBy: string;
   createdAt: string;
-  members: TeamMember[];
-  projects: Project[];
+  createdByUser: number;
+  members?: Array<{
+    memberId: number;
+    role: string;
+  }>;
 }
 
 export interface TeamMember {
-  id: string;
-  userId: string;
   username: string;
-  role: 'manager' | 'member';
-  joinedAt: string;
-  points: number;
+  id: number;
+  teamId?: number;
+  memberId: number;
+  role: string;
+  createdAt: string;
 }
 
-export interface Project {
-  id: string;
+export interface CreateTeamRequest {
+  user_id: number;
   name: string;
-  description: string;
-  teamId: string;
-  createdAt: string;
-  tasks: Task[];
 }
 
-export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  status: 'open' | 'assigned' | 'in_review' | 'completed'; // Бэкендовские статусы
-  points: number;
-  order?: number;
-  assigneeId?: string;
-  assigneeName?: string;
-  createdAt: string;
-  updatedAt: string;
-  dueDate?: string;
-  projectId: string;
-  tags: string[];
+export interface GetTeamRequest {
+  team_id: number;
+}
+
+export interface DeleteTeamRequest {
+  team_id: number;
+  current_user_id: number;
 }

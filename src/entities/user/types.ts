@@ -1,23 +1,25 @@
 export interface User {
   id: number;
+  telegramId: number;
+  username: string;
+  createdAt: string;
+  teams?: Array<{
+    id: number;
+    name: string;
+    role: string;
+  }>;
+}
+
+export interface CreateUserRequest {
   telegram_id: number;
   username: string;
-  first_name: string;
-  last_name?: string;
-  photo_url?: string;
 }
 
-export interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
+export interface GetUserRequest {
+  telegram_id?: number;
   username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
+export interface DeleteUserRequest {
+  user_id: number;
 }

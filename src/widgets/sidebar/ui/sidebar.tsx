@@ -1,6 +1,8 @@
 // components/sidebar/sidebar.tsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useHookGetUser } from '@/hooks/useHookGetUser'; // Добавляем ваш хук
+import { TEST_USERS } from '@/utils/test-users';
 import './sidebar.css';
 
 import dashboardIcon from '../../../assets/dashboard-logo.svg';
@@ -8,18 +10,28 @@ import teamIcon from '../../../assets/team-logo.svg';
 import settingsIcon from '../../../assets/settings-logo.svg';
 import burgerIcon from '../../../assets/burger-logo.svg';
 import exitIcon from '../../../assets/exit-logo.svg';
-import { useUserStore } from '@/features/auth-by-telegram';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface SidebarProps {
-  // Убираем пропсы, так как навигация будет через Router
+  onCollapseChange?: (isCollapsed: boolean) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = () => {
+interface UserTeam {
+  id: number;
+  name: string;
+  role: string;
+  points?: number;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, clearUser } = useUserStore();
+
+  // Получаем username из localStorage или используем дефолтный
+  const username = localStorage.getItem('username') || 'flavvvour';
+
+  // Используем ваш хук для получения пользователя
+  const { data: user, loading: userLoading, error: userError } = useHookGetUser(username);
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: dashboardIcon, path: '/dashboard' },
@@ -27,8 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = () => {
     { id: 'settings', label: 'Settings', icon: settingsIcon, path: '/dashboard/settings' },
   ];
 
-  // Функция для проверки активного раздела
-  const isActive = (path: string) => {
+  const isActive = (path: string): boolean => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
     }
@@ -36,67 +47,265 @@ export const Sidebar: React.FC<SidebarProps> = () => {
   };
 
   const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
+    const newCollapsedState = !isCollapsed;
+    setIsCollapsed(newCollapsedState);
+    onCollapseChange?.(newCollapsedState);
   };
 
-  const handleLogout = () => {
-    clearUser();
-    navigate('/login');
+  // Функция очистки пользователя
+  const clearUser = () => {
+    localStorage.removeItem('username');
+    // Можно добавить очистку других данных если нужно
   };
+
+  // ВЫХОД И ПЕРЕКЛЮЧЕНИЕ ПОЛЬЗОВАТЕЛЯ
+  const handleLogout = async () => {
+    console.group('🚪 Logout Process');
+
+    if (process.env.NODE_ENV === 'development') {
+      // В режиме разработки - переключаемся на выбор пользователя
+      console.log('🔧 Режим разработки: переключение пользователя');
+
+      // 1. Очищаем данные пользователя
+      clearUser();
+      console.log('✅ Данные пользователя очищены');
+
+      // 2. Устанавливаем флаг выхода
+      sessionStorage.setItem('is-logging-out', 'true');
+      console.log('🚫 Флаг выхода установлен');
+
+      // 3. Редирект с параметром logout
+      console.log('🔄 Редирект на страницу выбора');
+      navigate('/auth?logout=true');
+
+      // 4. Принудительно перезагружаем
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } else {
+      // В продакшн режиме
+      console.log('🚫 В продакшн режиме нельзя выйти из Telegram Mini App');
+
+      // Безопасная проверка с вашим типом
+      const telegram = window.Telegram;
+      if (telegram && telegram.WebApp) {
+        telegram.WebApp.showAlert(
+          'Выйти из приложения?',
+          'Для смены аккаунта закройте Mini App и откройте заново с другим Telegram аккаунтом.',
+          () => {
+            telegram.WebApp.close();
+          }
+        );
+      } else {
+        // Если не в Telegram Web App
+        clearUser();
+        navigate('/auth');
+        setTimeout(() => window.location.reload(), 100);
+      }
+    }
+
+    console.groupEnd();
+  };
+
+  // Быстрое переключение пользователя (только в разработке)
+  const handleQuickSwitch = () => {
+    if (process.env.NODE_ENV !== 'development') return;
+
+    if (!user) return;
+
+    // Находим следующего пользователя
+    const currentIndex = TEST_USERS.findIndex(u => u.telegramId === user.telegramID);
+    const nextIndex = (currentIndex + 1) % TEST_USERS.length;
+    const nextUser = TEST_USERS[nextIndex];
+
+    console.log(`🔄 Быстрое переключение на: @${nextUser.username}`);
+
+    // Очищаем текущего пользователя
+    clearUser();
+
+    // Устанавливаем данные следующего пользователя
+    sessionStorage.setItem(
+      'switch-to-user',
+      JSON.stringify({
+        telegramId: nextUser.telegramId,
+        username: nextUser.username,
+      })
+    );
+
+    // Редирект
+    navigate('/auth?switch=true');
+    setTimeout(() => window.location.reload(), 100);
+  };
+
+  // Вычисляем общее количество баллов пользователя
+  const totalPoints = useMemo(() => {
+    const userTeams = user?.teams;
+
+    if (userTeams && Array.isArray(userTeams)) {
+      return userTeams.reduce((sum: number, team: UserTeam) => {
+        return sum + (team.points || 0);
+      }, 0);
+    }
+
+    return 100;
+  }, [user]);
+
+  // Отображаем аватар пользователя
+  const getUserAvatar = (): string => {
+    if (user?.username) {
+      return user.username.charAt(0).toUpperCase();
+    }
+    return '👤';
+  };
+
+  // Определяем роль пользователя
+  const getUserRole = (): string => {
+    if (!user) return 'Гость';
+
+    const testUser = TEST_USERS.find(u => u.telegramId === user.telegramID);
+    return testUser?.role === 'manager' ? '👑 Менеджер' : '👤 Участник';
+  };
+
+  // Если загрузка пользователя
+  if (userLoading && !user) {
+    return (
+      <div className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-header-content">
+            {!isCollapsed && <h2 className="sidebar-title">Coopera</h2>}
+            <button className="sidebar-toggle" onClick={toggleSidebar}>
+              <img src={burgerIcon} alt="Меню" className="sidebar-toggle-icon" />
+            </button>
+          </div>
+        </div>
+        <div className="loading-placeholder">
+          <div className="loading-spinner"></div>
+          {!isCollapsed && <p>Загрузка...</p>}
+        </div>
+      </div>
+    );
+  }
+
+  // Если ошибка загрузки пользователя
+  if (userError && !user) {
+    return (
+      <div className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-header-content">
+            {!isCollapsed && <h2 className="sidebar-title">Coopera</h2>}
+            <button className="sidebar-toggle" onClick={toggleSidebar}>
+              <img src={burgerIcon} alt="Меню" className="sidebar-toggle-icon" />
+            </button>
+          </div>
+        </div>
+        <div className="error-placeholder">
+          <p>Ошибка загрузки</p>
+          <button onClick={() => navigate('/auth')} className="auth-btn">
+            Войти
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}>
+    <div
+      className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}
+      aria-label="Боковая панель навигации"
+    >
       {/* Хедер с кнопкой сворачивания */}
       <div className="sidebar-header">
         <div className="sidebar-header-content">
-          {!isCollapsed && <h2>Coopera</h2>}
+          {!isCollapsed && (
+            <h2 className="sidebar-title" aria-label="Название приложения">
+              Coopera
+            </h2>
+          )}
           <button
             className="sidebar-toggle"
             onClick={toggleSidebar}
             aria-label={isCollapsed ? 'Развернуть меню' : 'Свернуть меню'}
+            aria-expanded={!isCollapsed}
           >
-            <img src={burgerIcon} alt="menu" className="sidebar-toggle-icon" />
+            <img src={burgerIcon} alt="Меню" className="sidebar-toggle-icon" />
           </button>
         </div>
       </div>
 
       {/* Навигация */}
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label="Основная навигация">
         <ul>
-          {menuItems.map(item => (
-            <li key={item.id}>
-              <Link
-                to={item.path}
-                className={`nav-item ${isActive(item.path) ? 'nav-item--active' : ''}`}
-                title={isCollapsed ? item.label : ''}
-              >
-                <img src={item.icon} alt={item.label} className="nav-item__icon" />
-                {!isCollapsed && <span className="nav-item__label">{item.label}</span>}
-              </Link>
-            </li>
-          ))}
+          {menuItems.map(item => {
+            const active = isActive(item.path);
+            return (
+              <li key={item.id}>
+                <Link
+                  to={item.path}
+                  className={`nav-item ${active ? 'nav-item--active' : ''}`}
+                  title={isCollapsed ? item.label : ''}
+                  aria-current={active ? 'page' : undefined}
+                >
+                  <img src={item.icon} alt={`${item.label} иконка`} className="nav-item__icon" />
+                  {!isCollapsed && <span className="nav-item__label">{item.label}</span>}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 
-      {/* Футер */}
+      {/* Футер с информацией о пользователе */}
       <div className="sidebar-footer">
-        <div className="user-info">
-          <div className="user-avatar">
-            {user?.username ? user.username.charAt(0).toUpperCase() : '👤'}
+        {/* Подсказка в режиме разработки */}
+        {process.env.NODE_ENV === 'development' && !isCollapsed && (
+          <div className="dev-hint">
+            <small>Режим разработки: можно переключать пользователей</small>
           </div>
+        )}
+
+        <div className="user-info">
+          <div
+            className="user-avatar"
+            aria-label={`Аватар пользователя ${user?.username || 'Гость'}`}
+          >
+            {getUserAvatar()}
+          </div>
+
           {!isCollapsed && (
             <div className="user-details">
-              <span className="user-name">{user?.username || 'Гость'}</span>
-              <span className="user-points">100 баллов</span>
+              <div className="user-name-container">
+                <span className="user-name">{user?.username || 'Гость'}</span>
+                {process.env.NODE_ENV === 'development' && (
+                  <span className="user-role">{getUserRole()}</span>
+                )}
+              </div>
+              <div className="user-points">{totalPoints} баллов</div>
             </div>
           )}
-          <button 
-            className="logout-icon-btn" 
-            aria-label="Выйти"
-            onClick={handleLogout}
-          >
-            <img src={exitIcon} alt="exit" className="logout-icon" />
-          </button>
+
+          <div className="user-actions">
+            {/* Кнопка быстрого переключения (только в разработке) */}
+            {process.env.NODE_ENV === 'development' && user && !isCollapsed && (
+              <button
+                className="switch-user-btn"
+                onClick={handleQuickSwitch}
+                aria-label="Быстрое переключение пользователя"
+                title="Быстро переключить пользователя"
+              >
+                <span className="switch-icon">🔄</span>
+              </button>
+            )}
+
+            {/* Кнопка выхода */}
+            <button
+              className="logout-icon-btn"
+              onClick={handleLogout}
+              aria-label="Выйти из системы"
+              title={process.env.NODE_ENV === 'development' ? 'Сменить пользователя' : 'Выйти'}
+            >
+              <img src={exitIcon} alt="Иконка выхода" className="logout-icon" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

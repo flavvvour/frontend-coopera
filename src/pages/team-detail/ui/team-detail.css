@@ -551,3 +551,82 @@
     padding-bottom: 0.5rem;
   }
 }
+
+/* team-detail.css - добавьте: */
+.banner-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.banner-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.members-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.members-btn:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.add-member-btn {
+  background: #10b981;
+  color: white;
+}
+
+.add-member-btn:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.upload-btn {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.upload-btn:hover {
+  background: #e5e7eb;
+  transform: translateY(-2px);
+}
+
+.share-btn {
+  background: #8b5cf6;
+  color: white;
+}
+
+.share-btn:hover {
+  background: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .banner-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .banner-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

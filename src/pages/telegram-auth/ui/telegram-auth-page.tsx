@@ -1,158 +1,193 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useUserStore } from '@/features/auth-by-telegram';
+// pages/telegram-auth-page.tsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '@/shared/api';
+// import { useUserStore } from '@/entities/user/user-store';
+import type { ApiError } from '@/shared/api/types';
+import { TEST_USERS, setCurrentTestUser, clearTestUser } from '@/utils/test-users';
 import './telegram-auth-page.css';
 
 export const TelegramAuthPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
   const [username, setUsername] = useState('');
   const [telegramId, setTelegramId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showUserSwitcher, setShowUserSwitcher] = useState(false);
   const navigate = useNavigate();
-  const setUser = useUserStore(state => state.setUser);
+  const location = useLocation();
+  // const setUser = useUserStore(state => state.setUser);
 
-  // Получаем данные из URL параметров или Telegram WebApp
+  // Проверяем, пришли ли мы после выхода
   useEffect(() => {
-    // Сначала проверяем URL параметры (для обычного бота)
-    const telegramIdParam = searchParams.get('telegram_id');
-    const usernameParam = searchParams.get('username');
+    const searchParams = new URLSearchParams(location.search);
+    const isAfterLogout = searchParams.get('logout') === 'true';
 
-    if (telegramIdParam) {
-      setTelegramId(Number(telegramIdParam));
-      if (usernameParam) {
-        setUsername(usernameParam);
-      }
-      return;
+    if (isAfterLogout) {
+      console.log('🚫 Пришли после выхода - очищаем данные');
+      clearTestUser();
+      // Очищаем флаг через 10 секунд
+      setTimeout(() => {
+        sessionStorage.removeItem('is-logging-out');
+      }, 10000);
     }
+  }, [location]);
 
-    // Если параметров нет, проверяем Telegram WebApp (для Mini App)
-    if (window.Telegram?.WebApp) {
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
+  // В режиме разработки: используем тестовых пользователей
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const logoutFlag = sessionStorage.getItem('is-logging-out');
 
-      const telegramUser = tg.initDataUnsafe?.user;
-
-      if (telegramUser) {
-        setTelegramId(telegramUser.id);
-        if (telegramUser.username) {
-          setUsername(telegramUser.username);
-        }
-      }
-    }
-  }, [searchParams]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!username.trim()) {
-      setError('Введите никнейм Telegram');
-      return;
-    }
-
-
-    const usernameRegex = /^[a-zA-Z0-9_]{5,32}$/;
-    if (!usernameRegex.test(username)) {
-      setError('Никнейм должен содержать 5-32 символа (латиница, цифры, _)');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      let userTelegramId = telegramId;
-
-      // Если telegram_id не получен из параметров, пытаемся получить из WebApp
-      if (!userTelegramId && window.Telegram?.WebApp) {
-        const tg = window.Telegram.WebApp;
-        const telegramUser = tg.initDataUnsafe?.user;
-
-        if (telegramUser) {
-          userTelegramId = telegramUser.id;
-        }
+      if (logoutFlag === 'true') {
+        console.log('🚫 Пользователь вышел, показываем выбор');
+        setShowUserSwitcher(true);
+        return;
       }
 
-      // Если всё ещё нет telegram_id, используем временное значение
-      // (в реальном приложении здесь должна быть ошибка или другая логика)
-      if (!userTelegramId) {
-        // Для тестирования генерируем временный ID на основе username
-        userTelegramId = Math.floor(Math.random() * 1000000);
-        console.warn('Используется временный telegram_id для тестирования:', userTelegramId);
-      }
+      // По умолчанию - первый пользователь (менеджер)
+      setTelegramId(TEST_USERS[0].telegramId);
+      setUsername(TEST_USERS[0].username);
+    }
+  }, []);
 
-      // Создаем или получаем пользователя на бэкенде
-      const userData = {
-        telegram_id: userTelegramId,
-        username: username.trim(),
-        first_name: '',
-        last_name: '',
-      };
+  // Автоматическая авторизация
+  const handleAutoAuth = useCallback(
+    async (selectedTelegramId?: number, selectedUsername?: string) => {
+      const authTelegramId = selectedTelegramId || telegramId;
+      const authUsername = selectedUsername || username;
 
-      let user;
-      
-      // Сначала пытаемся получить пользователя по telegram_id
+      if (!authTelegramId || !authUsername) return;
+
+      setIsLoading(true);
+      setError('');
+
       try {
-        console.log('Trying getUser with telegram_id:', userTelegramId);
-        user = await apiClient.getUser(userTelegramId);
-        console.log('User found by telegram_id:', user);
-      } catch (getUserError) {
-        console.log('getUser error:', getUserError);
-        // Если пользователя нет (404), пытаемся создать нового
-        if ((getUserError as { response?: { status?: number } })?.response?.status === 404) {
+        let userResponse;
+        try {
+          userResponse = await apiClient.getUser(authTelegramId);
+          console.log('User found by telegram_id:', userResponse);
+        } catch (getError: unknown) {
+          const apiError = getError as ApiError;
+          if (apiError.response?.status === 404) {
+            console.log('User not found (404) - создаем нового');
+          } else {
+            throw getError;
+          }
+        }
+
+        if (!userResponse) {
           try {
-            console.log('Trying createUser:', userData);
-            user = await apiClient.createUser(userData);
-            console.log('User created:', user);
-          } catch (createError) {
-            console.log('createUser error:', createError);
-            // Если получили 409 (Conflict) - пользователь существует, но с другим telegram_id
-            // Пытаемся получить по username
-            if ((createError as { response?: { status?: number } })?.response?.status === 409) {
-              try {
-                console.log('Trying getUserByUsername:', username.trim());
-                user = await apiClient.getUserByUsername(username.trim());
-                console.log('User found by username:', user);
-              } catch (getUserByUsernameError) {
-                console.error('getUserByUsername error:', getUserByUsernameError);
-                throw new Error('Пользователь с таким никнеймом уже существует');
+            userResponse = await apiClient.createUser({
+              telegramId: authTelegramId,
+              username: authUsername.trim(),
+            });
+            console.log('User created:', userResponse);
+          } catch (createError: unknown) {
+            const apiError = createError as ApiError;
+            if (apiError.response?.status === 409) {
+              console.log('User already exists (409), trying to get again...');
+              userResponse = await apiClient.getUser(authTelegramId);
+              if (!userResponse) {
+                throw new Error('Пользователь существует, но не найден после 409 ошибки');
               }
             } else {
               throw createError;
             }
           }
-        } else {
-          throw getUserError;
         }
+
+        const userToSave = {
+          id: userResponse.id,
+          telegramId: userResponse.telegramId,
+          username: userResponse.username,
+          createdAt: userResponse.createdAt || new Date().toISOString(),
+        };
+
+        console.log('Saving user to store:', userToSave);
+        // setUser(userToSave);
+
+        // Сохраняем выбранного тестового пользователя
+        if (process.env.NODE_ENV === 'development') {
+          setCurrentTestUser(authTelegramId);
+          sessionStorage.removeItem('is-logging-out'); // Убираем флаг выхода
+        }
+
+        navigate('/dashboard');
+      } catch (err) {
+        console.error('Auth error:', err);
+        setError(err instanceof Error ? err.message : 'Ошибка авторизации');
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [telegramId, username, navigate]
+  );
 
-      console.log('Final user to save:', user);
-
-      // Сохраняем пользователя в store (включая команды, если они есть)
-      const userToSave = {
-        id: user.id,
-        telegram_id: user.telegram_id,
-        username: user.username,
-        first_name: user.first_name || '',
-        last_name: user.last_name || '',
-        photo_url: user.photo_url,
-      };
-      
-      console.log('Saving user to store:', userToSave);
-      setUser(userToSave);
-      console.log('User saved, navigating to dashboard...');
-
-      // Переходим на главную страницу
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Auth error:', err);
-      setError('Ошибка авторизации. Попробуйте еще раз');
-    } finally {
-      setIsLoading(false);
-    }
+  // Авторизация выбранного пользователя
+  const handleSelectUser = (user: (typeof TEST_USERS)[0]) => {
+    setTelegramId(user.telegramId);
+    setUsername(user.username);
+    setShowUserSwitcher(false);
+    handleAutoAuth(user.telegramId, user.username);
   };
+
+  // Если в режиме разработки и нужно выбрать пользователя
+  if (process.env.NODE_ENV === 'development' && showUserSwitcher) {
+    return (
+      <div className="telegram-auth-page">
+        <div className="auth-container">
+          <div className="auth-header">
+            <div className="auth-logo">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" />
+              </svg>
+            </div>
+            <h1>Выберите пользователя</h1>
+            <p>для тестирования разных ролей</p>
+          </div>
+
+          <div className="user-switcher">
+            <div className="user-list">
+              {TEST_USERS.map(user => (
+                <button
+                  key={user.telegramId}
+                  className="user-option"
+                  onClick={() => handleSelectUser(user)}
+                  disabled={isLoading}
+                >
+                  <div className="user-avatar">{user.username.charAt(0).toUpperCase()}</div>
+                  <div className="user-details">
+                    <strong>@{user.username}</strong>
+                    <span className={`role-badge role-${user.role}`}>
+                      {user.role === 'manager' ? '👑 Менеджер' : '👤 Участник'}
+                    </span>
+                    <span className="user-description">{user.description}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+          </div>
+
+          <div className="auth-info">
+            <p>
+              <em>Вы можете переключаться между пользователями для тестирования разных функций</em>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Если нет Telegram Web App, показываем инструкцию
+  const telegramWebApp = window.Telegram?.WebApp;
+  if (!telegramWebApp && process.env.NODE_ENV !== 'development') {
+    return (
+      <div className="telegram-auth-page">
+        <div className="auth-container">{/* ... инструкция для продакшн */}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="telegram-auth-page">
@@ -164,40 +199,56 @@ export const TelegramAuthPage: React.FC = () => {
             </svg>
           </div>
           <h1>Добро пожаловать в Coopera</h1>
-          <p>Введите ваш никнейм Telegram для продолжения</p>
+          <p>Вход через Telegram</p>
+
+          {telegramId && (
+            <div className="telegram-info">
+              <p>
+                Telegram ID: <code>{telegramId}</code>
+              </p>
+              <p>Username: @{username}</p>
+            </div>
+          )}
         </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label htmlFor="username">Никнейм Telegram</label>
-            <div className="input-wrapper">
-              <span className="input-prefix">@</span>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                placeholder="username"
-                disabled={isLoading}
-                autoFocus
-                autoComplete="off"
-              />
-            </div>
-            <span className="input-hint">Ваш никнейм из профиля Telegram</span>
-          </div>
+        {/* Кнопка для входа */}
+        <div className="auth-actions">
+          <button
+            onClick={() => handleAutoAuth()}
+            className="auth-submit-btn primary"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Входим...' : `Войти как @${username}`}
+          </button>
+
+          {/* В режиме разработки показываем кнопку смены пользователя */}
+          {process.env.NODE_ENV === 'development' && (
+            <button
+              onClick={() => setShowUserSwitcher(true)}
+              className="auth-submit-btn secondary"
+              disabled={isLoading}
+            >
+              🔄 Сменить пользователя
+            </button>
+          )}
 
           {error && <div className="error-message">{error}</div>}
+        </div>
 
-          <button type="submit" className="auth-submit-btn" disabled={isLoading || !username}>
-            {isLoading ? 'Входим...' : 'Продолжить'}
-          </button>
-        </form>
+        {isLoading && (
+          <div className="loading-overlay">
+            <div className="loading-spinner"></div>
+            <p>Авторизация...</p>
+          </div>
+        )}
 
         <div className="auth-info">
           <p>
-            <strong>Зачем это нужно?</strong>
+            <strong>Режим:</strong>{' '}
+            {process.env.NODE_ENV === 'development' ? 'Разработка' : 'Продакшн'}
           </p>
-          <p>Никнейм используется для идентификации в командах и совместной работе</p>
+          <p>• Telegram ID: {telegramId || 'не получен'}</p>
+          <p>• Username: @{username}</p>
         </div>
       </div>
     </div>

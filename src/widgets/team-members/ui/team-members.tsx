@@ -5,8 +5,19 @@
  */
 
 import React from 'react';
-import type { TeamMember } from '@/entities/team';
 import './team-members.css';
+
+// Используем тот же интерфейс, что и в TeamDetail
+interface TeamMember {
+  id: string;
+  userId: string;
+  username: string;
+  role: 'manager' | 'member';
+  joinedAt: string;
+  points: number;
+  email?: string;
+  avatar?: string;
+}
 
 interface TeamMembersProps {
   members: TeamMember[];
@@ -56,7 +67,7 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({
 
           return (
             <div
-              key={member.userId}
+              key={member.id} // Используем id вместо userId
               className={`member-card ${isCurrentUser ? 'current-user' : ''}`}
             >
               <div className="member-avatar">{member.username.charAt(0).toUpperCase()}</div>

@@ -1,143 +1,53 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useUserStore } from '@/features/auth-by-telegram';
-import type { TelegramUser } from '@/entities/user';
-import './telegram-login-button.css';
-
-declare global {
-  interface Window {
-    onTelegramAuth?: (user: TelegramUser) => void;
-  }
-}
+// src/features/auth-by-telegram/ui/telegram-login-button.tsx
+import React, { useEffect, useRef } from 'react';
 
 interface TelegramLoginButtonProps {
-  botUsername: string;
-  size?: 'large' | 'medium' | 'small';
+  botUsername: string; // Например: "mybot" (без @)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onAuth: (userData: any) => void;
+  buttonSize?: 'large' | 'medium' | 'small';
 }
 
 export const TelegramLoginButton: React.FC<TelegramLoginButtonProps> = ({
   botUsername,
-  size = 'large',
+  onAuth,
+  buttonSize = 'large',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const setUser = useUserStore(state => state.setUser);
-  const setLoading = useUserStore(state => state.setLoading);
-  const isLoading = useUserStore(state => state.isLoading);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [widgetError, setWidgetError] = useState<string>('');
-
-  const cleanBotUsername = botUsername.replace('@', '');
-
-  // Функция обработки авторизации - ПРЯМО ЗДЕСЬ
-  const handleTelegramAuth = async (telegramUser: TelegramUser) => {
-    setLoading(true);
-
-    try {
-      // 1. Отправляем данные на ваш бэкенд
-      const response = await fetch('/api/auth/telegram', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(telegramUser),
-      });
-
-      if (!response.ok) {
-        throw new Error('Auth failed');
-      }
-
-      const authData = await response.json();
-
-      // 2. Сохраняем пользователя в store
-      setUser(authData.user);
-    } catch (error) {
-      console.error('Auth error:', error);
-      // Можно показать ошибку пользователю
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Функция для ручного перехода в Telegram
-  const handleManualTelegramAuth = () => {
-    const telegramUrl = `https://t.me/${cleanBotUsername}?start=auth`;
-    window.open(telegramUrl, '_blank');
-  };
 
   useEffect(() => {
-    if (!containerRef.current || !cleanBotUsername) return;
+    if (!containerRef.current) return;
 
-    // Очистка предыдущего скрипта
-    if (containerRef.current) {
-      containerRef.current.innerHTML = '';
-    }
+    // 1. Создаем глобальную функцию, которую вызовет Telegram
+    window.onTelegramAuth = onAuth;
 
-    // Регистрируем глобальную функцию
-    window.onTelegramAuth = handleTelegramAuth;
-
+    // 2. Создаем скрипт виджета Telegram
     const script = document.createElement('script');
     script.src = 'https://telegram.org/js/telegram-widget.js?22';
     script.async = true;
 
-    script.setAttribute('data-telegram-login', cleanBotUsername);
-    script.setAttribute('data-size', size);
-    script.setAttribute('data-request-access', 'write');
+    // 3. Настраиваем атрибуты
+    script.setAttribute('data-telegram-login', botUsername.replace('@', ''));
+    script.setAttribute('data-size', buttonSize);
     script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+    script.setAttribute('data-request-access', 'write'); // Разрешения
 
-    script.onload = () => {
-      setScriptLoaded(true);
-      setWidgetError('');
-    };
-
-    script.onerror = () => {
-      console.error('Failed to load Telegram widget script');
-      setScriptLoaded(true);
-      setWidgetError('Не удалось загрузить виджет Telegram');
-    };
-
+    // 4. Вставляем в контейнер
     containerRef.current.appendChild(script);
 
+    // 5. Очистка при размонтировании
     return () => {
+      // Удаляем глобальную функцию
+      delete window.onTelegramAuth;
+
+      // Удаляем скрипт
       if (containerRef.current) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         containerRef.current.innerHTML = '';
       }
-      window.onTelegramAuth = undefined;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cleanBotUsername, size]);
+  }, [botUsername, buttonSize, onAuth]);
 
-  if (isLoading) {
-    return (
-      <div className="telegram-loading">
-        <div className="loading-spinner"></div>
-        <span>Авторизация...</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="telegram-auth-container">
-      {/* Основной виджет */}
-      <div className="widget-section">
-        <div
-          ref={containerRef}
-          className={`telegram-button-container ${!scriptLoaded ? 'loading' : ''}`}
-        />
-
-        {widgetError && <div className="error-message">{widgetError}</div>}
-      </div>
-
-      {/* Fallback вариант */}
-      <div className="fallback-section">
-        <div className="divider">
-          <span>или</span>
-        </div>
-
-        <button className="manual-telegram-button" onClick={handleManualTelegramAuth} type="button">
-          <span className="telegram-icon">📱</span>
-          Открыть в Telegram
-        </button>
-      </div>
-    </div>
-  );
+  // 6. Просто контейнер для виджета
+  return <div ref={containerRef} />;
 };
