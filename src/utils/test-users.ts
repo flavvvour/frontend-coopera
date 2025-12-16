@@ -14,13 +14,6 @@ export const TEST_USERS = [
     role: 'member',
     description: 'Обычный участник',
   },
-  {
-    id: 68,
-    telegramId: 100000002,
-    username: 'ekaterina',
-    role: 'member',
-    description: 'Обычный участник',
-  },
 ];
 
 export const getCurrentTestUser = () => {

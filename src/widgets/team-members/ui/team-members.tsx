@@ -79,7 +79,7 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({
                 </div>
                 <div className="member-details">
                   <span className={`role-badge ${member.role}`}>
-                    {member.role === 'manager' ? '👑 Менеджер' : '👤 Участник'}
+                    {member.role === 'manager' ? 'Менеджер' : 'Участник'}
                   </span>
                   {member.points !== undefined && (
                     <>

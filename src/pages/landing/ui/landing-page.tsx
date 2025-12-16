@@ -1,5 +1,5 @@
 import React from 'react';
-import './landing-page.css'; // Импортируем стили
+import './landing-page.css';
 
 export const LandingPage: React.FC = () => {
   return (
@@ -10,7 +10,6 @@ export const LandingPage: React.FC = () => {
           <div className="header-content">
             <div className="logo">
               <h1>Coopera</h1>
-              {/* <p>Трекер задач с системой баллов</p> */}
             </div>
 
             <button className="login-btn" onClick={() => (window.location.href = '/login')}>

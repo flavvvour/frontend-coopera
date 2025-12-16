@@ -386,7 +386,9 @@ class ApiClient {
         const userTeams = allTeams.filter((team: any) => {
           // Проверяем создателя (разные форматы)
           const isCreator =
-            team.createdByUser === userId || team.created_by === userId || team.createdByUser === userId;
+            team.createdByUser === userId ||
+            team.created_by === userId ||
+            team.createdByUser === userId;
 
           if (isCreator) {
             console.log(`👑 Пользователь создал команду ${team.ID || team.id}`);

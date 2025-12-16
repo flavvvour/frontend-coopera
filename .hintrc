@@ -16,14 +16,6 @@
         "aria-valid-attr-value": "off"
       }
     ],
-    "compat-api/css": [
-      "default",
-      {
-        "ignore": [
-          "user-select",
-          "backdrop-filter"
-        ]
-      }
-    ]
+    "compat-api/css": "off"
   }
 }

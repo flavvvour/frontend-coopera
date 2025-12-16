@@ -1,1 +1,0 @@
-export { TeamDetail } from './ui/team-detail';

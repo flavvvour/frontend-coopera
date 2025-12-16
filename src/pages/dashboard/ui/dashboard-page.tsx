@@ -1,115 +1,14 @@
-// pages/dashboard-page.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Sidebar } from '@/widgets/sidebar';
-import { UserComponentPage } from '@/components/User/userComponent';
-import { TeamDetail } from '@/pages/team-detail';
-import { useUserStats } from '@/features/dashboard/hooks/useUserStats';
+import { UserTeamsPage } from '@/components/User/userTeamsPage';
+import { TeamDetailPage } from '@/components/Team/teamDetailPage';
+import { PersonalStatisticsPage } from '@/components/User/PersonalStatisticsPage';
 import './dashboard-page.css';
-
-const DashboardHome: React.FC = () => {
-  const { stats, loading, error } = useUserStats();
-
-  useEffect(() => {
-    if (!loading) {
-      console.log('📊 Статистика на дашборде:', stats);
-    }
-  }, [stats, loading]);
-
-  if (loading) {
-    return (
-      <div className="dashboard-content-inner">
-        <div className="content-header">
-          <h1>Обзор проектов</h1>
-          <p>Загрузка статистики...</p>
-        </div>
-        <div className="stats-grid">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className="stat-card loading">
-              <div className="stat-icon">⏳</div>
-              <div className="stat-info">
-                <div className="loading-text"></div>
-                <div className="loading-subtext"></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="dashboard-content-inner">
-        <div className="content-header">
-          <h1>Обзор проектов</h1>
-          <p className="error">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="dashboard-content-inner">
-      <div className="content-header">
-        <h1>Обзор проектов</h1>
-        <p>Мониторинг ваших задач и прогресса</p>
-      </div>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">📋</div>
-          <div className="stat-info">
-            <h3>{stats.assignedTasks}</h3>
-            <p>Назначено на меня</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">⏳</div>
-          <div className="stat-info">
-            <h3>{stats.inProgress}</h3>
-            <p>В процессе</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">✅</div>
-          <div className="stat-info">
-            <h3>{stats.completed}</h3>
-            <p>Завершено</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">🏆</div>
-          <div className="stat-info">
-            <h3>{stats.totalPoints}</h3>
-            <p>Мои баллы</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Дополнительная статистика */}
-      <div className="stats-grid" style={{ marginTop: '20px' }}>
-        <div className="stat-card">
-          <div className="stat-icon">👥</div>
-          <div className="stat-info">
-            <h3>{stats.totalTasks}</h3>
-            <p>Всего задач в командах</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">✏️</div>
-          <div className="stat-info">
-            <h3>{stats.createdTasks}</h3>
-            <p>Создано мной</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 export const DashboardPage: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const username = localStorage.getItem('username') || 'Пользователь';
 
   const handleSidebarCollapse = (collapsed: boolean) => {
     setIsSidebarCollapsed(collapsed);
@@ -117,15 +16,97 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar onCollapseChange={handleSidebarCollapse} />
-      <div
-        className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}
-      >
+      <div className="sidebar-wrapper">
+        <Sidebar onCollapseChange={handleSidebarCollapse} />
+      </div>
+      <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <Routes>
-          <Route path="/" element={<DashboardHome />} />
-          <Route path="/teams" element={<UserComponentPage username={'flavvvour'} />} />
-          <Route path="/teams/:teamId" element={<TeamDetail />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/"
+            element={
+              <div className="dashboard-content-inner">
+                <div className="content-header">
+                  <h1>Добро пожаловать в Coopera!</h1>
+                  <p>Инновационная платформа для управления проектами и командами</p>
+                </div>
+
+                <div className="project-description">
+                  <div className="features-section">
+                    <h3>О проекте</h3>
+                    <div className="features-grid">
+                      <div className="feature-item">
+                        <div className="feature-icon">👥</div>
+                        <h4>Управление командами</h4>
+                        <p>
+                          Создавайте команды, распределяйте роли и управляйте участниками эффективно
+                        </p>
+                      </div>
+
+                      <div className="feature-item">
+                        <div className="feature-icon">📊</div>
+                        <h4>Аналитика и статистика</h4>
+                        <p>
+                          Отслеживайте прогресс проекта и продуктивность участников с помощью
+                          детальной аналитики
+                        </p>
+                      </div>
+
+                      <div className="feature-item">
+                        <div className="feature-icon">🤝</div>
+                        <h4>Коллаборация</h4>
+                        <p>
+                          Совместная работа над задачами в реальном времени с интуитивно понятным
+                          интерфейсом
+                        </p>
+                      </div>
+
+                      <div className="feature-item">
+                        <div className="feature-icon">⚡</div>
+                        <h4>Автоматизация</h4>
+                        <p>
+                          Автоматические уведомления, отчеты и напоминания для эффективного workflow
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="getting-started">
+                    <h3>Начните работу с Coopera</h3>
+                    <div className="getting-started-steps">
+                      <div className="step">
+                        <span className="step-number">1</span>
+                        <div className="step-content">
+                          <h4>Создайте команду</h4>
+                          <p>Перейдите в раздел "Teams" и создайте свою первую команду</p>
+                        </div>
+                      </div>
+
+                      <div className="step">
+                        <span className="step-number">2</span>
+                        <div className="step-content">
+                          <h4>Добавьте участников</h4>
+                          <p>Пригласите коллег присоединиться к вашей команде</p>
+                        </div>
+                      </div>
+
+                      <div className="step">
+                        <span className="step-number">3</span>
+                        <div className="step-content">
+                          <h4>Отслеживайте прогресс</h4>
+                          <p>Используйте раздел "Statistics" для мониторинга эффективности</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          />
+          <Route path="teams" element={<UserTeamsPage username={username} />} />
+          <Route path="teams/:teamId" element={<TeamDetailPage />} />
+          <Route path="statistics" element={<PersonalStatisticsPage username={username} />} />
+          {/* <Route path="/dashboard/*" element={<DashboardPage />} /> */}
+          <Route path="*" element={<Navigate to="" replace />} />
         </Routes>
       </div>
     </div>

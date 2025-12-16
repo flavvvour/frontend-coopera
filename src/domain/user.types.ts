@@ -1,13 +1,13 @@
 export interface User {
-    id: number;
-    telegramID: number;
-    username: string;
-    createdAt: Date;
-    teams: Team[];
+  id: number;
+  telegramID: number;
+  username: string;
+  createdAt: Date;
+  teams: Team[];
 }
 
 export interface Team {
-    id: number;
-    name: string;
-    role: string;
+  id: number;
+  name: string;
+  role: string;
 }
