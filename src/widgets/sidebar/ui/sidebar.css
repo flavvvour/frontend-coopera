@@ -8,7 +8,7 @@
   position: fixed;
   left: 0;
   top: 0;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 1px 0 10px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   z-index: 1000;
   overflow: hidden;
@@ -105,6 +105,7 @@
   transition: all 0.2s;
   font-size: 15px;
   font-weight: 500;
+  position: relative;
 }
 
 .sidebar--collapsed .nav-item {
@@ -112,11 +113,17 @@
   justify-content: center;
 }
 
-.nav-item:hover {
+/* Неактивное состояние - черные иконка и текст */
+.nav-item:not(.nav-item--active) {
+  color: #1f2937; /* Черный цвет текста */
+}
+
+.nav-item:not(.nav-item--active):hover {
   background: #f1f5f9;
   color: #334155;
 }
 
+/* Активное состояние - белые иконка и текст */
 .nav-item--active {
   background: #3b82f6;
   color: white;
@@ -124,16 +131,47 @@
 
 .nav-item--active:hover {
   background: #2563eb;
+  color: white;
+}
+
+/* Стили для иконок в неактивном состоянии */
+.nav-item:not(.nav-item--active) .nav-item__icon {
+  filter: brightness(0) saturate(100%) invert(15%) sepia(20%) saturate(800%) hue-rotate(180deg)
+    brightness(90%) contrast(90%);
+}
+
+.nav-item:not(.nav-item--active):hover .nav-item__icon {
+  filter: brightness(0) saturate(100%) invert(25%) sepia(20%) saturate(800%) hue-rotate(180deg)
+    brightness(90%) contrast(90%);
+}
+
+/* Стили для иконок в активном состоянии */
+.nav-item--active .nav-item__icon {
+  filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg)
+    brightness(100%) contrast(100%);
+}
+
+/* Стили для эмодзи в неактивном состоянии */
+.nav-item:not(.nav-item--active) .nav-item__emoji {
+  opacity: 0.8;
+}
+
+/* Стили для эмодзи в активном состоянии */
+.nav-item--active .nav-item__emoji {
+  opacity: 1;
 }
 
 .nav-item__icon {
   width: 22px;
   height: 22px;
   flex-shrink: 0;
+  transition: filter 0.2s;
 }
 
 .nav-item__label {
-  transition: opacity 0.3s;
+  transition:
+    opacity 0.3s,
+    color 0.2s;
   white-space: nowrap;
 }
 
@@ -143,17 +181,18 @@
   overflow: hidden;
 }
 
-/* Футер - ИСПРАВЛЕННЫЙ */
+/* Футер */
 .sidebar-footer {
-  margin-top: auto; /* Это заставляет футер быть внизу */
-  padding: 20px 16px;
+  margin-top: auto;
+  padding: 20px;
   border-top: 1px solid #f1f5f9;
-  background: #ffffff;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
   flex-shrink: 0;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar--collapsed .sidebar-footer {
-  padding: 16px 12px;
+  padding: 16px;
 }
 
 /* Информация о пользователе */
@@ -167,117 +206,133 @@
 .user-avatar {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  border-radius: 50%;
+  background: linear-gradient(135deg, #0085f2, #3b82f6);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: white;
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 133, 242, 0.2);
+  transition: all 0.2s;
+}
+
+.user-avatar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 133, 242, 0.3);
+}
+
+.sidebar--collapsed .user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 16px;
 }
 
 .user-details {
   flex: 1;
-  min-width: 0; /* Важно для корректного обрезания текста */
+  min-width: 0;
+  line-height: 1;
+  letter-spacing: 0;
+  word-spacing: 0;
 }
 
 .user-name-container {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 0; /* Убрали отступ */
+  line-height: 1;
 }
 
 .user-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 140px;
+  max-width: 150px;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
 }
 
 .user-role {
-  font-size: 11px;
-  font-weight: 600;
-  color: #7c3aed;
-  background: #ede9fe;
-  padding: 2px 8px;
-  border-radius: 12px;
-  white-space: nowrap;
+  display: none;
 }
 
-.user-points {
-  font-size: 12px;
-  color: #10b981;
-  font-weight: 500;
+.user-email {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
 }
 
 /* Кнопки действий */
 .user-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-left: auto;
   flex-shrink: 0;
 }
 
 .switch-user-btn,
 .logout-icon-btn {
-  background: #f8fafc;
-  border: none;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   cursor: pointer;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   min-width: 36px;
   min-height: 36px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .switch-user-btn:hover {
-  background: #e2e8f0;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
 .logout-icon-btn:hover {
   background: #fee2e2;
+  border-color: #fecaca;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(239, 68, 68, 0.15);
 }
 
 .switch-icon {
-  font-size: 18px;
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.switch-user-btn:hover .switch-icon {
+  transform: rotate(180deg);
 }
 
 .logout-icon {
   width: 18px;
   height: 18px;
+  transition: transform 0.2s ease;
 }
 
-/* Подсказка в режиме разработки */
+.logout-icon-btn:hover .logout-icon {
+  transform: scale(1.1);
+}
+
+/* Подсказка разработчика */
 .dev-hint {
-  margin-top: 12px;
-  padding: 10px 12px;
-  background: #eff6ff;
-  border-radius: 8px;
-  border-left: 4px solid #3b82f6;
-  font-size: 12px;
-  color: #1d4ed8;
-  line-height: 1.4;
-}
-
-.dev-hint small {
-  display: block;
-}
-
-/* Скрытие элементов в свернутом состоянии */
-.sidebar--collapsed .user-details,
-.sidebar--collapsed .dev-hint,
-.sidebar--collapsed .switch-user-btn {
-  display: none;
+  display: none; /* Скрываем если не используется */
 }
 
 .sidebar--collapsed .user-info {
@@ -286,7 +341,8 @@
 
 /* Подсказки при наведении в свернутом состоянии */
 .sidebar--collapsed .nav-item:hover::after,
-.sidebar--collapsed .logout-icon-btn:hover::after {
+.sidebar--collapsed .logout-icon-btn:hover::after,
+.sidebar--collapsed .switch-user-btn:hover::after {
   content: attr(title);
   position: absolute;
   left: 100%;
@@ -294,13 +350,26 @@
   transform: translateY(-50%);
   background: #1f2937;
   color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
   font-size: 13px;
   white-space: nowrap;
   z-index: 1001;
-  margin-left: 8px;
+  margin-left: 10px;
   pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
 }
 
 /* Адаптивность */
@@ -321,5 +390,92 @@
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
+  }
+
+  .user-name {
+    font-size: 14px;
+    max-width: 130px;
+  }
+
+  .user-role {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  .user-email {
+    font-size: 12px;
+    max-width: 150px;
+  }
+}
+
+/* sidebar.css */
+.nav-item__emoji {
+  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+/* Загрузка и ошибки */
+.loading-placeholder,
+.error-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: #64748b;
+}
+
+.loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.auth-btn:hover {
+  background: #2563eb;
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 380px) {
+  .sidebar:not(.sidebar--collapsed) {
+    width: 260px;
+  }
+
+  .user-name {
+    max-width: 110px;
+  }
+
+  .user-email {
+    max-width: 120px;
   }
 }

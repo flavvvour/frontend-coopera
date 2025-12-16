@@ -215,7 +215,7 @@
 .user-avatar {
   width: 50px;
   height: 50px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #0085f26b;
   color: white;
   border-radius: 50%;
   display: flex;
@@ -227,18 +227,6 @@
   flex-shrink: 0;
 }
 
-.user-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.user-details strong {
-  font-size: 1.1rem;
-  margin-bottom: 4px;
-}
-
 .role-badge {
   font-size: 0.85rem;
   padding: 3px 10px;
@@ -248,9 +236,11 @@
 }
 
 .role-manager {
-  background-color: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
+  background-color: rgb(0, 133, 242, 0.15);
+  color: #0085f2;
+  padding: 4px;
+  border-radius: 6px;
+  font-size: 14px;
 }
 
 .role-member {

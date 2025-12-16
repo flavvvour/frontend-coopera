@@ -1,5 +1,5 @@
 // components/sidebar/sidebar.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useHookGetUser } from '@/hooks/useHookGetUser'; // Добавляем ваш хук
 import { TEST_USERS } from '@/utils/test-users';
@@ -8,18 +8,12 @@ import './sidebar.css';
 import dashboardIcon from '../../../assets/dashboard-logo.svg';
 import teamIcon from '../../../assets/team-logo.svg';
 import settingsIcon from '../../../assets/settings-logo.svg';
+import statisticsIcon from '../../../assets/statistics-logo.svg';
 import burgerIcon from '../../../assets/burger-logo.svg';
 import exitIcon from '../../../assets/exit-logo.svg';
 
 interface SidebarProps {
   onCollapseChange?: (isCollapsed: boolean) => void;
-}
-
-interface UserTeam {
-  id: number;
-  name: string;
-  role: string;
-  points?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange }) => {
@@ -36,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: dashboardIcon, path: '/dashboard' },
     { id: 'teams', label: 'Teams', icon: teamIcon, path: '/dashboard/teams' },
+    { id: 'statistics', label: 'Statistics', icon: statisticsIcon, path: '/dashboard/statistics' }, // Добавьте эту строку
     { id: 'settings', label: 'Settings', icon: settingsIcon, path: '/dashboard/settings' },
   ];
 
@@ -59,58 +54,56 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange }) => {
   };
 
   // ВЫХОД И ПЕРЕКЛЮЧЕНИЕ ПОЛЬЗОВАТЕЛЯ
+  // ЗАМЕНИТЕ эту функцию в sidebar.tsx:
+  // В sidebar.tsx - замените функцию handleLogout
   const handleLogout = async () => {
     console.group('🚪 Logout Process');
 
-    if (process.env.NODE_ENV === 'development') {
-      // В режиме разработки - переключаемся на выбор пользователя
-      console.log('🔧 Режим разработки: переключение пользователя');
+    try {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔧 Режим разработки: выход из системы');
 
-      // 1. Очищаем данные пользователя
-      clearUser();
-      console.log('✅ Данные пользователя очищены');
-
-      // 2. Устанавливаем флаг выхода
-      sessionStorage.setItem('is-logging-out', 'true');
-      console.log('🚫 Флаг выхода установлен');
-
-      // 3. Редирект с параметром logout
-      console.log('🔄 Редирект на страницу выбора');
-      navigate('/auth?logout=true');
-
-      // 4. Принудительно перезагружаем
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    } else {
-      // В продакшн режиме
-      console.log('🚫 В продакшн режиме нельзя выйти из Telegram Mini App');
-
-      // Безопасная проверка с вашим типом
-      const telegram = window.Telegram;
-      if (telegram && telegram.WebApp) {
-        telegram.WebApp.showAlert(
-          'Выйти из приложения?',
-          'Для смены аккаунта закройте Mini App и откройте заново с другим Telegram аккаунтом.',
-          () => {
-            telegram.WebApp.close();
-          }
-        );
-      } else {
-        // Если не в Telegram Web App
+        // 1. Очищаем данные пользователя
         clearUser();
-        navigate('/auth');
-        setTimeout(() => window.location.reload(), 100);
+        console.log('✅ Данные пользователя очищены');
+
+        // 2. НЕ устанавливаем флаг выхода (это для выбора пользователя)
+        // sessionStorage.removeItem('is-logging-out'); // ← УДАЛИТЕ ЭТО!
+
+        // 3. Редирект на ГЛАВНУЮ страницу (LandingPage)
+        console.log('🔄 Редирект на главную страницу');
+        navigate('/'); // ← ИЗМЕНИТЕ С /auth НА /
+      } else {
+        console.log('🚫 В продакшн режиме');
+
+        const telegram = window.Telegram;
+        if (telegram?.WebApp) {
+          telegram.WebApp.showAlert(
+            'Выйти из приложения?',
+            'Для смены аккаунта закройте Mini App и откройте заново с другим Telegram аккаунтом.',
+            () => {
+              clearUser();
+              telegram.WebApp.close();
+            }
+          );
+        } else {
+          clearUser();
+          navigate('/'); // ← ИЗМЕНИТЕ С /auth НА /
+        }
       }
+    } catch (error) {
+      console.error('❌ Ошибка при выходе:', error);
+      clearUser();
+      navigate('/'); // ← ИЗМЕНИТЕ С /auth НА /
     }
 
     console.groupEnd();
   };
 
   // Быстрое переключение пользователя (только в разработке)
+  // Исправьте функцию быстрого переключения:
   const handleQuickSwitch = () => {
     if (process.env.NODE_ENV !== 'development') return;
-
     if (!user) return;
 
     // Находим следующего пользователя
@@ -132,41 +125,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange }) => {
       })
     );
 
-    // Редирект
     navigate('/auth?switch=true');
-    setTimeout(() => window.location.reload(), 100);
   };
 
-  // Вычисляем общее количество баллов пользователя
-  const totalPoints = useMemo(() => {
-    const userTeams = user?.teams;
-
-    if (userTeams && Array.isArray(userTeams)) {
-      return userTeams.reduce((sum: number, team: UserTeam) => {
-        return sum + (team.points || 0);
-      }, 0);
-    }
-
-    return 100;
-  }, [user]);
-
-  // Отображаем аватар пользователя
-  const getUserAvatar = (): string => {
-    if (user?.username) {
-      return user.username.charAt(0).toUpperCase();
-    }
-    return '👤';
-  };
-
-  // Определяем роль пользователя
-  const getUserRole = (): string => {
-    if (!user) return 'Гость';
-
-    const testUser = TEST_USERS.find(u => u.telegramId === user.telegramID);
-    return testUser?.role === 'manager' ? '👑 Менеджер' : '👤 Участник';
-  };
-
-  // Если загрузка пользователя
   if (userLoading && !user) {
     return (
       <div className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}>
@@ -245,7 +206,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange }) => {
                   title={isCollapsed ? item.label : ''}
                   aria-current={active ? 'page' : undefined}
                 >
-                  <img src={item.icon} alt={`${item.label} иконка`} className="nav-item__icon" />
+                  {/* Проверяем, является ли иконка эмодзи или путем к файлу */}
+                  {typeof item.icon === 'string' && item.icon.length <= 2 ? (
+                    // Если это эмодзи (короткая строка)
+                    <span className="nav-item__emoji">{item.icon}</span>
+                  ) : (
+                    // Если это путь к файлу
+                    <img src={item.icon} alt={`${item.label} иконка`} className="nav-item__icon" />
+                  )}
                   {!isCollapsed && <span className="nav-item__label">{item.label}</span>}
                 </Link>
               </li>
@@ -256,56 +224,51 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange }) => {
 
       {/* Футер с информацией о пользователе */}
       <div className="sidebar-footer">
-        {/* Подсказка в режиме разработки */}
-        {process.env.NODE_ENV === 'development' && !isCollapsed && (
-          <div className="dev-hint">
-            <small>Режим разработки: можно переключать пользователей</small>
-          </div>
-        )}
-
         <div className="user-info">
-          <div
-            className="user-avatar"
-            aria-label={`Аватар пользователя ${user?.username || 'Гость'}`}
-          >
-            {getUserAvatar()}
-          </div>
-
-          {!isCollapsed && (
-            <div className="user-details">
-              <div className="user-name-container">
-                <span className="user-name">{user?.username || 'Гость'}</span>
-                {process.env.NODE_ENV === 'development' && (
-                  <span className="user-role">{getUserRole()}</span>
-                )}
+          {!isCollapsed ? (
+            <>
+              <div className="user-details">
+                {/* ВСЁ В ОДНУ СТРОКУ БЕЗ ПРОБЕЛОВ */}
+                <div className="user-name-container">
+                  <span className="user-name">{user?.username || 'Гость'}</span>
+                </div>
               </div>
-              <div className="user-points">{totalPoints} баллов</div>
+              <div className="user-actions">
+                {/* Кнопка быстрого переключения (только в разработке) */}
+                {process.env.NODE_ENV === 'development' && user && (
+                  <button
+                    className="switch-user-btn"
+                    onClick={handleQuickSwitch}
+                    aria-label="Быстрое переключение пользователя"
+                    title="Быстро переключить пользователя"
+                  >
+                    <span className="switch-icon">🔄</span>
+                  </button>
+                )}
+                {/* Кнопка выхода */}
+                <button
+                  className="logout-icon-btn"
+                  onClick={handleLogout}
+                  aria-label="Выйти из системы"
+                  title={process.env.NODE_ENV === 'development' ? 'Сменить пользователя' : 'Выйти'}
+                >
+                  <img src={exitIcon} alt="Иконка выхода" className="logout-icon" />
+                </button>
+              </div>
+            </>
+          ) : (
+            /* Свернутое состояние - только кнопка выхода */
+            <div className="user-actions">
+              <button
+                className="logout-icon-btn"
+                onClick={handleLogout}
+                aria-label="Выйти из системы"
+                title="Выйти"
+              >
+                <img src={exitIcon} alt="Иконка выхода" className="logout-icon" />
+              </button>
             </div>
           )}
-
-          <div className="user-actions">
-            {/* Кнопка быстрого переключения (только в разработке) */}
-            {process.env.NODE_ENV === 'development' && user && !isCollapsed && (
-              <button
-                className="switch-user-btn"
-                onClick={handleQuickSwitch}
-                aria-label="Быстрое переключение пользователя"
-                title="Быстро переключить пользователя"
-              >
-                <span className="switch-icon">🔄</span>
-              </button>
-            )}
-
-            {/* Кнопка выхода */}
-            <button
-              className="logout-icon-btn"
-              onClick={handleLogout}
-              aria-label="Выйти из системы"
-              title={process.env.NODE_ENV === 'development' ? 'Сменить пользователя' : 'Выйти'}
-            >
-              <img src={exitIcon} alt="Иконка выхода" className="logout-icon" />
-            </button>
-          </div>
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ import '@/app/styles/index.css';
 // Инициализация Sentry (только для production)
 if (import.meta.env.PROD) {
   Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN, // Добавь в .env
+    dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
     tracesSampleRate: 1.0, // Процент трейсов для отправки
     integrations: [

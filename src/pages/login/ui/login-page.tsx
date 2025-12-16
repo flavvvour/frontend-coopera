@@ -1,7 +1,31 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './login-page.css';
 
 export const LoginPage: React.FC = () => {
+  const navigate = useNavigate();
+  const username = localStorage.getItem('username'); // Получаем текущего пользователя
+
+  const handleLogout = () => {
+    console.log('Выход из системы...');
+
+    // 1. Сначала очищаем все данные
+    localStorage.removeItem('username');
+    localStorage.removeItem('telegram_id');
+    localStorage.removeItem('first_name');
+    localStorage.removeItem('last_name');
+
+    if (import.meta.env.DEV) {
+      sessionStorage.removeItem('is-logging-out');
+      sessionStorage.removeItem('switch-to-user');
+    }
+
+    console.log('✅ Данные очищены');
+
+    // 2. Вместо reload() - переходим на страницу выбора пользователя
+    navigate('/auth');
+  };
+
   return (
     <div className="login-page">
       <div className="login-container">
@@ -9,6 +33,65 @@ export const LoginPage: React.FC = () => {
           <h1>Coopera</h1>
           <p>Вход в систему</p>
         </div>
+
+        {/* БЛОК ИНФОРМАЦИИ О ТЕКУЩЕМ ПОЛЬЗОВАТЕЛЕ */}
+        {username && (
+          <div
+            className="current-user-section"
+            style={{
+              marginBottom: '30px',
+              padding: '20px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '12px',
+              border: '1px solid #e9ecef',
+            }}
+          >
+            <h3 style={{ marginBottom: '10px', color: '#333' }}>Вы уже вошли в систему</h3>
+            <p style={{ marginBottom: '15px', color: '#666' }}>
+              Текущий пользователь: <strong>@{username}</strong>
+            </p>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => navigate('/dashboard')}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: '#4f46e5',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                ✅ Продолжить как @{username}
+              </button>
+
+              <button
+                onClick={() => {
+                  handleLogout();
+                  navigate('/auth');
+                }}
+                style={{
+                  padding: '10px 20px',
+                  backgroundColor: 'transparent',
+                  color: '#dc2626',
+                  border: '1px solid #dc2626',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                }}
+              >
+                🔄 Выйти и выбрать другого пользователя
+              </button>
+            </div>
+
+            {import.meta.env.DEV && (
+              <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
+                ⚡ В режиме разработки вы можете переключаться между тестовыми пользователями
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="telegram-auth-section">
           <h2>Войти через Telegram</h2>
@@ -19,7 +102,6 @@ export const LoginPage: React.FC = () => {
             className="telegram-login-btn"
             onClick={() => {
               const botUsername = 'test_coopera_bot';
-              // Открываем Mini App через бота
               window.location.href = `https://t.me/${botUsername}?start=webapp`;
             }}
           >
@@ -35,23 +117,38 @@ export const LoginPage: React.FC = () => {
             Никто не сможет войти под чужим аккаунтом!
           </p>
 
-          {/* Временная кнопка для тестирования БЕЗ настройки Mini App */}
+          {/* Временная кнопка для тестирования */}
           {import.meta.env.DEV && (
             <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '2px solid #e0e0e0' }}>
-              <p style={{ fontSize: '13px', color: '#666', marginBottom: '12px', fontWeight: 'bold' }}>
+              <p
+                style={{
+                  fontSize: '13px',
+                  color: '#666',
+                  marginBottom: '12px',
+                  fontWeight: 'bold',
+                }}
+              >
                 ⚙️ Режим разработки
               </p>
               <button
                 type="button"
                 className="telegram-login-btn"
-                style={{ 
+                style={{
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+                  boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
                 }}
                 onClick={() => {
-                  // Генерируем случайный telegram_id для тестирования
-                  const testTelegramId = Math.floor(Math.random() * 1000000000);
-                  window.location.href = `/auth?telegram_id=${testTelegramId}&username=&first_name=Test&last_name=User`;
+                  // Если уже есть пользователь, очищаем данные
+                  if (username) {
+                    handleLogout();
+                    // Через секунду переходим на auth
+                    setTimeout(() => {
+                      navigate('/auth');
+                    }, 100);
+                  } else {
+                    // Если нет пользователя, просто переходим
+                    navigate('/auth');
+                  }
                 }}
               >
                 🚀 Быстрый вход (для разработки)
@@ -61,29 +158,6 @@ export const LoginPage: React.FC = () => {
               </p>
             </div>
           )}
-
-          {/* Для продакшена раскомментируйте виджет после настройки домена в BotFather */}
-          {/* 
-          <TelegramLoginButton 
-            botUsername="test_coopera_bot"
-            size="large"
-          />
-          */}
-
-          {/* <div className="login-features">
-            <div className="feature">
-              <span className="feature-icon">⚡</span>
-              <span>Мгновенный вход</span>
-            </div>
-            <div className="feature">
-              <span className="feature-icon">🔒</span>
-              <span>Без паролей</span>
-            </div>
-            <div className="feature">
-              <span className="feature-icon">👥</span>
-              <span>Доступ к командам</span>
-            </div>
-          </div>*/}
         </div>
 
         <div className="login-footer">

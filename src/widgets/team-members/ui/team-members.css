@@ -138,13 +138,13 @@
 }
 
 .role-badge.manager {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgb(0,133,242,0.15);
+  color: #0085f2;
 }
 
 .role-badge.member {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: rgb(0,133,242,0.15);
+  color: #0085f2;
 }
 
 .detail-divider {
