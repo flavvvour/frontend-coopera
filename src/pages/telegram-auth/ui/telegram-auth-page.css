@@ -51,18 +51,9 @@
   margin-bottom: 32px;
 }
 
-.form-group {
-  margin-bottom: 24px;
-}
+/* Базовые стили form-group и error-message импортируются из components/forms.css */
 
-.form-group label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #2d3748;
-  margin-bottom: 8px;
-}
-
+/* Специфичные стили для инпута с префиксом */
 .input-wrapper {
   position: relative;
   display: flex;
@@ -106,16 +97,7 @@
   margin-top: 6px;
 }
 
-.error-message {
-  padding: 12px 16px;
-  background: #fed7d7;
-  border: 1px solid #fc8181;
-  border-radius: 8px;
-  color: #c53030;
-  font-size: 14px;
-  margin-bottom: 16px;
-}
-
+/* Кнопка отправки */
 .auth-submit-btn {
   width: 100%;
   padding: 16px;
@@ -212,7 +194,7 @@
   transform: translateY(-2px);
 }
 
-.user-avatar {
+.auth-user-avatar {
   width: 50px;
   height: 50px;
   background: #0085f26b;

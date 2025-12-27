@@ -215,7 +215,7 @@ export const TelegramAuthPage: React.FC = () => {
                   onClick={() => handleSelectUser(user)}
                   disabled={isLoading}
                 >
-                  <div className="user-avatar">{user.username.charAt(0).toUpperCase()}</div>
+                  <div className="auth-user-avatar">{user.username.charAt(0).toUpperCase()}</div>
                   <div className="user-details">
                     <strong>@{user.username}</strong>
                     <span className={`role-badge role-${user.role}`}>

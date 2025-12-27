@@ -27,6 +27,7 @@ export interface KanbanBoardProps {
   canCreateTasks?: boolean;
   canEditTasks?: boolean;
   canDeleteTasks?: boolean;
+  isManager?: boolean;
 }
 
 export function KanbanBoard({
@@ -36,6 +37,7 @@ export function KanbanBoard({
   canCreateTasks = true,
   canEditTasks = true,
   canDeleteTasks = true,
+  isManager = false,
 }: KanbanBoardProps) {
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
   const [showTaskDetailModal, setShowTaskDetailModal] = useState(false);
@@ -217,7 +219,8 @@ export function KanbanBoard({
         currentUserId,
         title: newTask.title,
         description: newTask.description,
-        points: newTask.points,
+        // Только менеджер может устанавливать баллы
+        points: isManager ? newTask.points : undefined,
         assignedToMember: newTask.assignedToMember,
       };
 
@@ -431,45 +434,43 @@ export function KanbanBoard({
 
   return (
     <div className="kanban-board-container">
-      {/* Обертка для прокручиваемого контента */}
-      <div className="kanban-wrapper">
-        {/* Состояния загрузки и ошибок */}
-        {tasksLoading && (
-          <div className="loading-overlay">
-            <div className="loading-spinner"></div>
-            <p>Загрузка задач...</p>
-          </div>
-        )}
+      {/* Состояния загрузки и ошибок */}
+      {tasksLoading && (
+        <div className="loading-overlay">
+          <div className="loading-spinner"></div>
+          <p>Загрузка задач...</p>
+        </div>
+      )}
 
-        {tasksError && (
-          <div className="error-message-container">
-            <p>Ошибка загрузки задач: {tasksError.message}</p>
-            <button onClick={() => window.location.reload()} className="retry-btn">
-              Попробовать снова
-            </button>
-          </div>
-        )}
+      {tasksError && (
+        <div className="error-message-container">
+          <p>Ошибка загрузки задач: {tasksError.message}</p>
+          <button onClick={() => window.location.reload()} className="retry-btn">
+            Попробовать снова
+          </button>
+        </div>
+      )}
 
-        {deleteTaskError && (
-          <div className="error-message-container">
-            <p>Ошибка удаления задачи: {deleteTaskError.message}</p>
-            <button onClick={() => window.location.reload()} className="retry-btn">
-              Обновить
-            </button>
-          </div>
-        )}
+      {deleteTaskError && (
+        <div className="error-message-container">
+          <p>Ошибка удаления задачи: {deleteTaskError.message}</p>
+          <button onClick={() => window.location.reload()} className="retry-btn">
+            Обновить
+          </button>
+        </div>
+      )}
 
-        {updateStatusError && (
-          <div className="error-message-container">
-            <p>Ошибка изменения статуса задачи: {updateStatusError.message}</p>
-            <button onClick={() => window.location.reload()} className="retry-btn">
-              Обновить
-            </button>
-          </div>
-        )}
+      {updateStatusError && (
+        <div className="error-message-container">
+          <p>Ошибка изменения статуса задачи: {updateStatusError.message}</p>
+          <button onClick={() => window.location.reload()} className="retry-btn">
+            Обновить
+          </button>
+        </div>
+      )}
 
-        {/* Канбан-доска */}
-        <div className="kanban-board">
+      {/* Канбан-доска */}
+      <div className="kanban-board">
           {columns.map(column => (
             <div
               key={column.id}
@@ -500,7 +501,7 @@ export function KanbanBoard({
             </div>
           ))}
         </div>
-      </div>
+
       {/* Модальное окно создания задачи */}
       {showCreateTaskModal && selectedColumn && (
         <div className="modal-overlay">
@@ -550,8 +551,11 @@ export function KanbanBoard({
                     onChange={e =>
                       setNewTask({ ...newTask, points: parseInt(e.target.value) || 1 })
                     }
-                    disabled={creatingTask}
+                    disabled={creatingTask || !isManager}
                   />
+                  {!isManager && (
+                    <p className="field-note">Только менеджер может устанавливать баллы</p>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -718,8 +722,12 @@ export function KanbanBoard({
                   max="100"
                   value={editPoints}
                   onChange={e => setEditPoints(parseInt(e.target.value) || 1)}
-                  disabled={updatingTask}
+                  disabled={updatingTask || !isManager}
+                  className={!isManager ? 'disabled-input' : ''}
                 />
+                {!isManager && (
+                  <p className="field-note">Только менеджер может изменять баллы</p>
+                )}
               </div>
 
               <div className="form-group">

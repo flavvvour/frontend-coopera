@@ -1,0 +1,120 @@
+/* ===== КНОПКИ ===== */
+/* Переиспользуемые стили для кнопок */
+
+/* Базовый стиль */
+.btn {
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  min-height: 44px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Первичная кнопка */
+.btn-primary,
+.create-btn {
+  background: var(--color-primary);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.btn-primary:hover:not(:disabled),
+.create-btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-primary:active:not(:disabled),
+.create-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Вторичная кнопка */
+.btn-secondary,
+.cancel-btn {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border);
+}
+
+.btn-secondary:hover:not(:disabled),
+.cancel-btn:hover:not(:disabled) {
+  background-color: var(--color-border);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Кнопка успеха */
+.btn-success {
+  background: var(--color-success);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: var(--color-success-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Кнопка опасности */
+.btn-danger {
+  background: var(--color-danger);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--color-danger-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Размеры */
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 14px;
+  min-height: 36px;
+}
+
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 16px;
+  min-height: 52px;
+}
+
+/* Кнопка-иконка */
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-full);
+}
+
+/* Кнопка-ссылка */
+.btn-link {
+  background: none;
+  color: var(--color-primary);
+  padding: 0;
+  min-height: auto;
+  text-decoration: underline;
+}
+
+.btn-link:hover:not(:disabled) {
+  color: var(--color-primary-hover);
+  transform: none;
+}

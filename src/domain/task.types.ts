@@ -13,7 +13,7 @@ export interface CreateTaskResponse {
 
 export interface CreateTaskRequest {
   teamId: number;
-  points: number;
+  points?: number;
   currentUserId: number;
   assignedToMember: number;
   title: string;

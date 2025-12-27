@@ -1,22 +1,14 @@
 /* components/sidebar/sidebar.css */
 .sidebar {
-  width: 290px;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background: #ffffff;
   display: flex;
   flex-direction: column;
-  position: fixed;
-  left: 0;
-  top: 0;
   box-shadow: 1px 0 10px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   z-index: 1000;
   overflow: hidden;
-}
-
-/* Свернутое состояние */
-.sidebar--collapsed {
-  width: 70px;
 }
 
 /* Хедер */
@@ -372,39 +364,101 @@
   }
 }
 
-/* Адаптивность */
+/* Адаптивность: мобильная нижняя навигация */
 @media (max-width: 768px) {
   .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar--open {
-    transform: translateX(0);
-  }
-
-  .sidebar-mobile-overlay {
     position: fixed;
-    top: 0;
+    bottom: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
+    top: auto;
+    height: auto;
+    width: 100%;
+    flex-direction: row;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    background: white;
+    z-index: 10;
+    pointer-events: auto;
   }
 
-  .user-name {
-    font-size: 14px;
-    max-width: 130px;
+  .sidebar-header {
+    display: none;
   }
 
-  .user-role {
-    font-size: 10px;
-    padding: 2px 8px;
+  .sidebar-nav {
+    flex: 1;
+    padding: 0;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
-  .user-email {
+  .sidebar-nav ul {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sidebar-nav li {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  .nav-item {
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 8px 8px;
+    min-width: 0;
+    text-align: center;
+    border-radius: 0;
+    justify-content: center;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    color: #64748b;
+  }
+
+  .nav-item--active {
+    background: #3b82f6;
+    color: white;
+    border-bottom-color: #2563eb;
+  }
+
+  .nav-item--active .nav-item__icon {
+    filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg)
+      brightness(100%) contrast(100%);
+  }
+
+  .nav-item:not(.nav-item--active) .nav-item__icon {
+    filter: brightness(0) saturate(100%) invert(40%) sepia(10%) saturate(800%) hue-rotate(180deg)
+      brightness(90%) contrast(90%);
+  }
+
+  .nav-item:hover:not(.nav-item--active) {
+    background: #f8fafc;
+  }
+
+  .nav-item__icon,
+  .nav-item__emoji {
+    width: 24px;
+    height: 24px;
+    font-size: 20px;
+  }
+
+  .nav-item__label {
+    display: block;
     font-size: 12px;
-    max-width: 150px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .sidebar-footer {
+    display: none;
   }
 }
 

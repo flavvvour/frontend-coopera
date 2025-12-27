@@ -2,7 +2,7 @@
   width: 100%;
   margin: 0;
   padding: 0;
-  min-height: 100vh;
+  min-height: 100%;
   background-color: #ffffff;
 }
 
@@ -11,7 +11,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1rem;
-  padding: 1rem 1.5rem;
+  /* padding: 1rem 1.5rem; */
   background: white;
   border-bottom: 1px solid #e2e8f0;
   font-size: 0.9rem;
@@ -43,8 +43,9 @@
   display: flex;
   align-items: center;
   gap: 2rem;
-  padding: 2rem 1.5rem;
+  /* padding: 2rem 1.5rem; */
   margin: 0;
+  padding-bottom: 20px;
   background: white;
 }
 
@@ -154,7 +155,7 @@
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding-left: 25px;
+  /* padding-left: 25px; */
   padding-top: 20px;
 }
 
@@ -520,9 +521,11 @@
 .team-tabs {
   display: flex;
   gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
   margin: 0;
   background: white;
-  padding: 0 1.5rem;
+  /* padding: 0 1.5rem; */
 }
 
 .tab-btn {
@@ -548,6 +551,24 @@
   color: #3b82f6;
   border-bottom: 3px solid #3b82f6;
   background: #f8fafc;
+}
+
+.invite-btn-tab {
+  padding: 0.6rem 1.2rem;
+  background: #0085f2;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  margin-left: auto;
+}
+
+.invite-btn-tab:hover {
+  background: #0070d1;
+  transform: translateY(-1px);
 }
 
 /* Секция для канбан-доски */
@@ -581,28 +602,73 @@
 }
 
 @media (max-width: 768px) {
+  .team-detail-container {
+    padding-bottom: 80px;
+  }
+
   .team-header {
     flex-direction: column;
-    text-align: center;
-    gap: 1.5rem;
-    padding: 1.5rem;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .avatar-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 2rem;
+  }
+
+  .team-info h1 {
+    font-size: 1.5rem;
   }
 
   .team-meta {
-    justify-content: center;
     gap: 1rem;
+    width: 100%;
   }
 
   .team-actions {
     width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 8px;
   }
 
-  .members-table-header,
+  .team-actions .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .members-table-header {
+    display: none;
+  }
+
   .member-row {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
+    gap: 12px;
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .member-cell {
+    width: 100%;
+    padding: 0;
+  }
+
+  .member-cell:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .small-btn {
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    font-size: 14px;
+    justify-content: center;
   }
 
   .stats-grid {
@@ -611,12 +677,16 @@
 
   .team-tabs {
     padding: 0 1rem;
-    flex-wrap: wrap;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .tab-btn {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1.5rem;
     font-size: 0.85rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }
 
@@ -729,29 +799,9 @@ body,
   margin: 0;
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
+/* Базовые стили модалок импортируются из components/modals.css */
 
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-/* Стили для предпросмотра пользователя */
+/* Специфичные стили для предпросмотра пользователя */
 .user-preview {
   margin-top: 16px;
   padding: 16px;
@@ -761,27 +811,27 @@ body,
   animation: fadeIn 0.3s ease;
 }
 
-.user-info {
+.search-user-info {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.user-info strong {
+.search-user-info strong {
   color: #0369a1;
   font-size: 0.9rem;
   margin-bottom: 4px;
   display: block;
 }
 
-.user-info > div {
+.search-user-info > div {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 0.875rem;
   color: #475569;
 }
-.user-info > div:before {
+.search-user-info > div:before {
   content: '•';
   color: #3b82f6;
   font-weight: bold;
@@ -842,38 +892,10 @@ body,
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease;
-}
-
+/* Переопределение стилей модалок для этой страницы */
 .modal-content {
-  background: white;
-  border-radius: 12px;
-  padding: 0;
   max-width: 500px;
-  width: 90%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease;
-  overflow: hidden;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 @keyframes slideUp {
@@ -887,102 +909,7 @@ body,
   }
 }
 
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  color: #1e293b;
-  font-weight: 600;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #64748b;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.close-btn:hover {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.close-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #334155;
-  font-size: 0.875rem;
-}
-
-.error-message {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 16px;
-  font-size: 0.875rem;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 20px 24px;
-  border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
-}
-
-.cancel-btn {
-  padding: 10px 20px;
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cancel-btn:hover:not(:disabled) {
-  background: #e2e8f0;
-}
-
-.cancel-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+/* Кнопка подтверждения (зеленая) */
 .confirm-btn {
   padding: 10px 20px;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
