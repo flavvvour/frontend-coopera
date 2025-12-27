@@ -62,17 +62,34 @@
 
 /* Канбан-доска */
 .kanban-board {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, 280px);
-  gap: 20px;
-
-  overflow-x: auto;
-  overflow-y: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 20px;
   min-height: 0;
-  background: #ffffff;
+  background: #f8f9fa;
   width: 100%;
   height: 100%;
-  align-content: start;
+      border-radius: 12px;
+}
+
+.kanban-column {
+  flex: 1 1 200px;
+  min-width: 200px;
+}
+
+/* Мобильная адаптация: вертикальный стек */
+@media (max-width: 768px) {
+  .kanban-board {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .kanban-column {
+    flex: none;
+    width: 100%;
+  }
 }
 
 .kanban-footer {
@@ -454,20 +471,7 @@
 }
 
 /* Стили для модального окна создания задачи */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
-  backdrop-filter: blur(3px);
-}
+/* Базовые стили импортируются из components/modals.css */
 
 .create-task-modal {
   background-color: white;
@@ -492,141 +496,6 @@
   }
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px;
-  border-bottom: 1px solid #f3f4f6;
-  background: white;
-  border-radius: 16px 16px 0 0;
-  position: relative;
-}
-
-.modal-header::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 24px;
-  right: 24px;
-  height: 1px;
-  background: #e5e7eb;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 20px;
-  color: #111827;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.close-modal-btn {
-  background: none;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  color: #6b7280;
-  padding: 0;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.close-modal-btn:hover {
-  background-color: #f3f4f6;
-  color: #374151;
-  transform: rotate(90deg);
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.error-message {
-  background-color: #fef2f2;
-  color: #dc2626;
-  padding: 14px 16px;
-  border-radius: 10px;
-  margin-bottom: 24px;
-  border: 1px solid #fecaca;
-  font-size: 14px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.error-message::before {
-  content: '⚠️';
-  font-size: 16px;
-}
-
-.form-group {
-  margin-bottom: 24px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #374151;
-  font-size: 15px;
-}
-
-.form-group label::after {
-  content: '*';
-  color: #dc2626;
-  margin-left: 2px;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-  width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
-  font-size: 15px;
-  transition: all 0.2s;
-  background-color: white;
-  color: #111827;
-  font-family: inherit;
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.form-group input::placeholder,
-.form-group textarea::placeholder {
-  color: #9ca3af;
-}
-
-.form-group textarea {
-  min-height: 100px;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-.form-group input:disabled,
-.form-group textarea:disabled,
-.form-group select:disabled {
-  background-color: #f9fafb;
-  cursor: not-allowed;
-  border-color: #d1d5db;
-  color: #6b7280;
-}
-
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -648,8 +517,10 @@
   font-size: 14px;
 }
 
-/* Кастомный селект */
+/* Специфичные стили для селекта задач */
 .form-group select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -690,65 +561,49 @@
   border-radius: 0 0 16px 16px;
 }
 
-.cancel-btn,
-.create-btn {
-  padding: 14px 28px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
+/* Стили кнопок модального окна */
+.cancel-btn {
+  padding: 12px 24px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  color: #6b7280;
+  border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
-  transition: all 0.3s;
+  cursor: pointer;
+  transition: all 0.2s ease;
   min-width: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.cancel-btn {
-  background-color: #f3f4f6;
-  color: #374151;
-  border: 2px solid #e5e7eb;
 }
 
 .cancel-btn:hover {
-  background-color: #e5e7eb;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.cancel-btn:active {
-  transform: translateY(0);
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #374151;
 }
 
 .create-btn {
-  background: #0085f2;
+  padding: 12px 24px;
+  border: none;
+  background: #3b82f6;
   color: white;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
 }
 
-.create-btn:hover {
-  background: #0085f2;
-  transform: translateY(-2px);
-}
-
-.create-btn:active {
-  transform: translateY(0);
+.create-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .create-btn:disabled {
-  background: rgba(0, 133, 242, 0.5);
+  background: #93c5fd;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-  opacity: 0.7;
-}
-
-.cancel-btn:disabled,
-.create-btn:disabled {
   opacity: 0.6;
-  cursor: not-allowed;
-  transform: none !important;
 }
 
 /* Адаптивность для модального окна */
@@ -1059,92 +914,4 @@
   animation: slideIn 0.3s ease-out;
 }
 
-/* Для очень больших экранов - увеличиваем колонки */
-@media (min-width: 1400px) {
-  .kanban-board {
-    grid-auto-columns: minmax(300px, 1fr);
-    gap: 24px;
-  }
-}
-
-@media (min-width: 1600px) {
-  .kanban-board {
-    grid-auto-columns: minmax(320px, 1fr);
-    gap: 28px;
-  }
-}
-
-@media (min-width: 1920px) {
-  .kanban-board {
-    grid-auto-columns: minmax(340px, 1fr);
-    gap: 32px;
-  }
-}
-
-@media (min-width: 2560px) {
-  .kanban-board {
-    grid-auto-columns: minmax(380px, 1fr);
-    gap: 40px;
-  }
-}
-
-/* 1. Сначала мобильные устройства (максимальная ширина) */
-@media (max-width: 767px) {
-  .kanban-board {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
-    gap: 16px;
-    padding: 16px;
-  }
-
-  .kanban-column {
-    width: 100%;
-  }
-}
-
-/* 2. Планшеты и маленькие десктопы */
-@media (min-width: 768px) and (max-width: 1200px) {
-  .kanban-board {
-    grid-template-columns: repeat(2, 280px);
-    justify-content: center;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-}
-
-/* 3. Большие экраны (порядок ВАЖЕН: от меньшего к большему) */
-@media (min-width: 1201px) {
-  .kanban-board {
-    display: grid;
-    /* grid-auto-flow: column; */
-    grid-auto-columns: minmax(280px, 1fr);
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-}
-
-/* 4. Очень большие экраны - увеличиваем колонки */
-@media (min-width: 1400px) {
-  .kanban-board {
-    grid-template-columns: repeat(auto-fill, 300px);
-  }
-}
-
-@media (min-width: 1600px) {
-  .kanban-board {
-    grid-template-columns: repeat(auto-fill, 320px);
-  }
-}
-
-@media (min-width: 1920px) {
-  .kanban-board {
-    grid-template-columns: repeat(auto-fill, 340px);
-  }
-}
-
-@media (min-width: 2560px) {
-  .kanban-board {
-    grid-auto-columns: minmax(380px, 1fr);
-    gap: 40px;
-  }
-}
+/* Все grid-правила удалены, теперь только flex без скролла */

@@ -276,12 +276,10 @@ export function TeamDetailPage() {
               Редактировать
             </button>
           )}
-          {isUserMemberOfTeam ? (
+          {isUserMemberOfTeam && (
             <button className="action-btn invite-btn" onClick={() => setShowInviteModal(true)}>
               Пригласить
             </button>
-          ) : (
-            <button className="action-btn join-btn">Вступить в команду</button>
           )}
         </div>
       </header>
@@ -391,6 +389,7 @@ export function TeamDetailPage() {
             canCreateTasks={canCreateTasks}
             canEditTasks={isUserMemberOfTeam}
             canDeleteTasks={isManager}
+            isManager={isManager}
           />
         ) : (
           /* Вкладка канбан-доски - для не участников */
@@ -414,7 +413,7 @@ export function TeamDetailPage() {
               <div className="modal-header">
                 <h3>Пригласить участника</h3>
                 <button
-                  className="close-btn"
+                  className="close-modal-btn"
                   onClick={() => setShowInviteModal(false)}
                   disabled={invitingUser}
                 >
@@ -455,7 +454,7 @@ export function TeamDetailPage() {
                 {/* Live-предпросмотр */}
                 {usernameToAdd.trim() && !searchingUser && foundUser && (
                   <div className="user-preview">
-                    <div className="user-info">
+                    <div className="search-user-info">
                       <strong>Найден пользователь:</strong>
                       <div>Username: {foundUser.username}</div>
                       <div>ID: #{foundUser.id}</div>

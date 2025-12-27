@@ -155,41 +155,7 @@
   z-index: 1;
 }
 
-.user-avatar {
-  width: 70px;
-  height: 70px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
-  backdrop-filter: blur(10px);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.75rem;
-  font-weight: 700;
-  flex-shrink: 0;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.user-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.user-info h1 {
-  font-size: 2rem;
-  color: white;
-  margin: 0 0 0.25rem 0;
-  font-weight: 700;
-  text-align: left;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+/* Удалены неиспользуемые стили .user-avatar и .user-info (конфликтовали с sidebar) */
 
 .user-call-to-action {
   color: rgba(255, 255, 255, 0.9);
@@ -262,9 +228,9 @@
 
 /* ===== УЛУЧШЕННЫЙ ДИЗАЙН КАРТОЧЕК КОМАНД ===== */
 .teams-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
   padding: 0.5rem 0;
 }
 
@@ -277,6 +243,8 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
   cursor: pointer;
+  flex: 1 1 400px;
+  min-width: 350px;
 }
 
 .team-card::before {
@@ -1122,30 +1090,7 @@
 }
 
 /* ===== МОДАЛЬНОЕ ОКНО ===== */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 2rem;
-  backdrop-filter: blur(8px);
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
+/* Базовые стили импортируются из components/modals.css */
 
 .create-team-modal {
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
@@ -1154,11 +1099,6 @@
   max-width: 550px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow:
-    0 20px 60px rgba(59, 130, 246, 0.25),
-    0 4px 12px rgba(0, 0, 0, 0.1),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.9);
-  border: 2px solid #bfdbfe;
   animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1171,236 +1111,6 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.75rem;
-  border-bottom: 2px solid #bfdbfe;
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border-radius: 1.5rem 1.5rem 0 0;
-  position: relative;
-}
-
-.modal-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
-  border-radius: 1.5rem 1.5rem 0 0;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 1.75rem;
-  color: #1e40af;
-  font-weight: 800;
-}
-
-.close-modal-btn {
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  border: 2px solid #cbd5e1;
-  font-size: 1.75rem;
-  cursor: pointer;
-  color: #475569;
-  padding: 0;
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.close-modal-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 100%
-  );
-  transition: left 0.6s ease;
-}
-
-.close-modal-btn:hover::before {
-  left: 100%;
-}
-
-.close-modal-btn:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
-  transform: rotate(90deg);
-  border-color: #dc2626;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-}
-
-.modal-body {
-  padding: 2rem;
-}
-
-.error-message {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  color: #991b1b;
-  padding: 1rem 1.25rem;
-  border-radius: 1rem;
-  margin-bottom: 1.5rem;
-  border: 2px solid #fecaca;
-  font-size: 0.95rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.75rem;
-  font-weight: 700;
-  color: #0f172a;
-  font-size: 1rem;
-}
-
-.form-group label::after {
-  content: '*';
-  color: #dc2626;
-  margin-left: 0.25rem;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  border: 2px solid #bfdbfe;
-  border-radius: 1rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: white;
-  color: #0f172a;
-  font-family: inherit;
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow:
-    0 0 0 4px rgba(59, 130, 246, 0.12),
-    0 4px 12px rgba(59, 130, 246, 0.1);
-  background: #f0f9ff;
-}
-
-.form-group input::placeholder {
-  color: #94a3b8;
-}
-
-.form-group input:disabled {
-  background: #f1f5f9;
-  cursor: not-allowed;
-  border-color: #cbd5e1;
-  color: #64748b;
-}
-
-.input-error {
-  border-color: #dc2626 !important;
-  background: #fef2f2 !important;
-}
-
-.field-error {
-  color: #dc2626;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-  font-weight: 600;
-}
-
-.modal-footer {
-  padding: 1.5rem 2rem;
-  border-top: 2px solid #bfdbfe;
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  border-radius: 0 0 1.5rem 1.5rem;
-}
-
-.cancel-btn,
-.create-btn {
-  padding: 0.9rem 1.8rem;
-  border-radius: 0.75rem;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  min-width: 130px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.cancel-btn::before,
-.create-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    transparent 100%
-  );
-  transition: left 0.6s ease;
-}
-
-.cancel-btn:hover::before,
-.create-btn:hover::before {
-  left: 100%;
-}
-
-.cancel-btn {
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  color: #64748b;
-  border: 2px solid #cbd5e1;
-  box-shadow: 0 2px 8px rgba(100, 116, 139, 0.1);
-}
-
-.cancel-btn:hover {
-  background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.15);
-  color: #475569;
-}
-
-.create-btn {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  border: 2px solid transparent;
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
 }
 
 .create-btn:hover:not(:disabled) {
@@ -1420,8 +1130,12 @@
 /* ===== АДАПТИВНОСТЬ ===== */
 @media (max-width: 1024px) {
   .teams-grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
+  }
+
+  .team-card {
+    flex: 1 1 300px;
+    min-width: 280px;
   }
 }
 
@@ -1445,10 +1159,7 @@
     width: 100%;
   }
 
-  .user-info h1 {
-    font-size: 1.75rem;
-    text-align: left;
-  }
+  /* Удалён неиспользуемый .profile-user-info h1 */
 
   .user-header-right {
     width: 100%;
@@ -1456,8 +1167,13 @@
   }
 
   .teams-grid {
-    grid-template-columns: 1fr;
     gap: 1.25rem;
+  }
+
+  .team-card {
+    flex: 1 1 100%;
+    min-width: 100%;
+    max-width: 100%;
   }
 
   .team-actions {
@@ -1497,12 +1213,6 @@
   .create-btn {
     width: 100%;
     min-width: auto;
-  }
-
-  .close-modal-btn {
-    width: 38px;
-    height: 38px;
-    font-size: 1.5rem;
   }
 
   .banner-actions {

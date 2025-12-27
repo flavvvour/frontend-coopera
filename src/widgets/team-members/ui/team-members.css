@@ -210,13 +210,19 @@
   }
 
   .member-card {
+    flex-direction: column;
     padding: 12px;
+    gap: 12px;
   }
 
   .member-avatar {
     width: 40px;
     height: 40px;
     font-size: 16px;
+  }
+
+  .member-info {
+    width: 100%;
   }
 
   .member-name {
@@ -231,5 +237,24 @@
 
   .detail-divider {
     display: none;
+  }
+
+  .member-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .member-actions .action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .add-member-btn {
+    width: 100%;
+    justify-content: center;
   }
 }

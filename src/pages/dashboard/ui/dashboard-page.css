@@ -1,55 +1,55 @@
 .dashboard-layout {
+  --sidebar-width: 290px;
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background-color: #ffffff;
-  position: relative;
 }
 
-/* Сайдбар - фиксированная позиция */
+.dashboard-layout.sidebar-collapsed {
+  --sidebar-width: 80px;
+}
+
+/* Сайдбар занимает место в раскладке (без перекрытия контента) */
 .sidebar-wrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
+  flex: 0 0 var(--sidebar-width);
+  width: var(--sidebar-width);
   height: 100vh;
-  width: 250px; /* Ширина развернутого сайдбара */
-  z-index: 1000;
-  /* background: white; */
-  /* box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1); */
-  transition:
-    width 0.3s ease,
-    transform 0.3s ease;
   overflow-y: auto;
   overflow-x: hidden;
+  transition: width 0.3s ease;
 }
 
-/* Когда сайдбар свернут */
-.sidebar-wrapper.collapsed {
-  width: 70px; /* Ширина свернутого сайдбара */
+.sidebar-wrapper::-webkit-scrollbar {
+  width: 6px;
 }
 
-/* Контент - с отступом под сайдбар */
+.sidebar-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.sidebar-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 .dashboard-content {
   flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 2rem;
-  min-height: 100vh;
   box-sizing: border-box;
-  transition:
-    margin-left 0.3s ease,
-    width 0.3s ease;
-  margin-left: 300px; /* Отступ для развернутого сайдбара */
-  width: calc(100% - 250px);
-}
-
-/* Когда сайдбар свернут - уменьшаем отступ */
-.dashboard-content.sidebar-collapsed {
-  margin-left: 0px;
-  width: calc(100% - 170px);
 }
 
 .dashboard-content-inner {
-  max-width: 1200px;
-  margin: 0 auto;
   width: 100%;
+  margin: 0;
 }
 
 
@@ -269,23 +269,16 @@ html {
 
 /* Адаптивность */
 @media (max-width: 1024px) {
-  .sidebar-wrapper {
-    width: 200px;
+  .dashboard-layout {
+    --sidebar-width: 200px;
   }
 
-  .sidebar-wrapper.collapsed {
-    width: 60px;
+  .dashboard-layout.sidebar-collapsed {
+    --sidebar-width: 80px;
   }
 
   .dashboard-content {
-    margin-left: 200px;
-    width: calc(100% - 200px);
     padding: 1.5rem;
-  }
-
-  .dashboard-content.sidebar-collapsed {
-    margin-left: 60px;
-    width: calc(100% - 60px);
   }
 }
 
@@ -295,26 +288,23 @@ html {
   }
 
   .sidebar-wrapper {
-    position: relative;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    flex: 0 0 auto;
     width: 100% !important;
     height: auto;
-    max-height: 60px;
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-  }
-
-  .sidebar-wrapper.expanded {
-    max-height: 400px;
+    pointer-events: none;
   }
 
   .dashboard-content {
-    margin-left: 0 !important;
     width: 100% !important;
     padding: 1rem;
+    padding-bottom: 80px; /* Отступ снизу под навигацию */
   }
 
   .dashboard-content.sidebar-collapsed {
-    margin-left: 0 !important;
     width: 100% !important;
   }
 

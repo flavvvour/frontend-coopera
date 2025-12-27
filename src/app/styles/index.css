@@ -1,3 +1,10 @@
+/* ===== ИМПОРТЫ ===== */
+@import './variables.css';
+@import './components/modals.css';
+@import './components/forms.css';
+@import './components/buttons.css';
+
+/* ===== ГЛОБАЛЬНЫЕ СБРОСЫ ===== */
 * {
   margin: 0;
   padding: 0;

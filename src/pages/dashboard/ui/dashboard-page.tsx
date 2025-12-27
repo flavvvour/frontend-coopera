@@ -15,8 +15,8 @@ export const DashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="dashboard-layout">
-      <div className="sidebar-wrapper">
+    <div className={`dashboard-layout ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <div className={`sidebar-wrapper ${isSidebarCollapsed ? 'collapsed' : ''}`}>
         <Sidebar onCollapseChange={handleSidebarCollapse} />
       </div>
       <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
