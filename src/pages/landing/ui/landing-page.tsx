@@ -1,7 +1,11 @@
 import React from 'react';
+import { useState } from 'react';
 import './landing-page.css';
 
 export const LandingPage: React.FC = () => {
+
+  const [activeTab, setActiveTab] = useState('telegram');
+
   return (
     <div className="landing-page">
       {/* Шапка */}
@@ -11,73 +15,73 @@ export const LandingPage: React.FC = () => {
             <div className="logo">
               <h1>Coopera</h1>
             </div>
-
+            <div className="header-nav">
+              <a href="">Главная</a>
+              <a href="">Разработка</a>
+              <a href="">Сообщество</a>
+              <a href="">О нас</a>
+            </div>
             <button className="login-btn" onClick={() => (window.location.href = '/login')}>
-              Войти через Telegram
+              Регистрация
             </button>
           </div>
         </div>
       </header>
 
-      {/* Герой-секция */}
-      <section className="hero-section">
+      <section className='landing-main'>
         <div className="container">
-          <h2 className="hero-title">
-            Управляйте задачами
-            <br />с мотивацией
-          </h2>
-
-          <p className="hero-description">
-            Создавайте команды, назначайте задачи и зарабатывайте баллы за выполнение. Просто как
-            канбан, но с игровыми элементами.
-          </p>
-
-          <div className="hero-actions">
-            <button className="cta-button primary">Начать использовать</button>
-
-            <button className="cta-button secondary">Узнать больше</button>
+          <div className="main-content">
+            <div className="header-main">
+              <div className="stars">
+                <img src="src/assets/star.svg" alt="" />
+                <img src="src/assets/star.svg" alt="" />
+                <img src="src/assets/star.svg" alt="" />
+                <img src="src/assets/star.svg" alt="" />
+                <img src="src/assets/star.svg" alt="" />
+              </div>
+              <p className='header-main-p'>Доверяют более 1000+ команд</p>
+            </div>
+            <h1>Платформа для командной работы</h1>
+            <p className='main-content-p'>Попробуй и открой для себя новую платформу с автоматизацией</p>
+            <div className="button-container">
+              <button className="get-started-btn" onClick={() => (window.location.href = '/login')}>
+                Начать прямо сейчас
+                <div className="rect">
+                  <img src="src\assets\arrow.svg" alt="arrow" />
+                </div>
+              </button>
+              <button className="get-about-btn" onClick={() => (window.location.href = '/login')}>
+                Узнать больше
+              </button>
+            </div>
+            <div className="main-demo">
+              <img src="src/assets/demo-main-section.png" alt="" />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Mockup канбан-доски */}
-      <section className="kanban-section">
-        <div className="container">
-          <div className="kanban-mockup">
-            {/* Колонка To Do */}
-            <div className="kanban-column">
-              <h3 className="column-title">To Do</h3>
-
-              <div className="task-card todo">
-                <div className="task-title">Создать дизайн</div>
-                <div className="task-points">10 баллов</div>
-              </div>
-
-              <div className="task-card todo">
-                <div className="task-title">Написать документацию</div>
-                <div className="task-points">5 баллов</div>
-              </div>
-            </div>
-
-            {/* Колонка In Progress */}
-            <div className="kanban-column">
-              <h3 className="column-title">In Progress</h3>
-
-              <div className="task-card in-progress">
-                <div className="task-title">Разработать API</div>
-                <div className="task-points">15 баллов</div>
-              </div>
-            </div>
-
-            {/* Колонка Done */}
-            <div className="kanban-column">
-              <h3 className="column-title">Done</h3>
-
-              <div className="task-card done">
-                <div className="task-title">Прототип интерфейса</div>
-                <div className="task-points">20 баллов</div>
-              </div>
-            </div>
+      <section className='landing-crossplatform'>
+        <p>кроссплатформенность</p>
+        <h2>Работайте из любого места, будьте в курсе событий</h2>
+        <div className="features-section">
+          <div className="image-container">
+            <img
+              className={activeTab === 'telegram' ? 'slide-from-left' : 'slide-from-right'}
+              src={activeTab === 'telegram' ? 'src/assets/telegram-bot.png' : 'src/assets/web-app.png'}
+              alt={activeTab === 'telegram' ? 'Telegram bot' : 'Web application'} />
+          </div>
+          <div className="tabs">
+            <button className={activeTab === 'telegram' ? 'tab-btn active' : 'tab-btn'}
+            onClick={() => setActiveTab('telegram')}
+            >
+              Telegram-бот
+            </button>
+            <button className={activeTab === 'web' ? 'tab-btn active' : 'tab-btn'}
+            onClick={() => setActiveTab('web')}
+            >
+              Web-приложение
+            </button>
           </div>
         </div>
       </section>
