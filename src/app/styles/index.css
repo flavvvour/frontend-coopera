@@ -10,6 +10,7 @@
   src: url('/src/assets/fonts/ZONAPRO-THIN.TTF') format('truetype');
   font-weight: 100;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -17,6 +18,7 @@
   src: url('/src/assets/fonts/ZONAPRO-LIGHT.TTF') format('truetype');
   font-weight: 300;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -24,6 +26,7 @@
   src: url('/src/assets/fonts/ZONAPRO-REGULAR.TTF') format('truetype');
   font-weight: 400;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -31,6 +34,7 @@
   src: url('/src/assets/fonts/ZONAPRO-REGULARITALIC.TTF') format('truetype');
   font-weight: 400;
   font-style: italic;
+  font-display: swap;
 }
 
 @font-face {
@@ -38,6 +42,7 @@
   src: url('/src/assets/fonts/ZONAPRO-SEMIBOLD.TTF') format('truetype');
   font-weight: 600;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -45,6 +50,7 @@
   src: url('/src/assets/fonts/ZONAPRO-BOLD.TTF') format('truetype');
   font-weight: 700;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -52,6 +58,7 @@
   src: url('/src/assets/fonts/ZONAPRO-EXTRABOLD.TTF') format('truetype');
   font-weight: 800;
   font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
@@ -59,6 +66,7 @@
   src: url('/src/assets/fonts/ZONAPRO-BLACK.TTF') format('truetype');
   font-weight: 900;
   font-style: normal;
+  font-display: swap;
 }
 
 /* ===== ГЛОБАЛЬНЫЕ СБРОСЫ ===== */
