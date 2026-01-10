@@ -183,6 +183,44 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      <section className="landing-main">
+        <div className="container">
+          <div className="main-content-end">
+            <div className="header-main">
+              <div className="stars">
+                <img src="src/assets/star.svg" alt="" />
+                <img src="src/assets/star.svg" alt="" />
+                <img src="src/assets/star.svg" alt="" />
+                <img src="src/assets/star.svg" alt="" />
+                <img src="src/assets/star.svg" alt="" />
+              </div>
+              <p className="header-main-p">Доверяют более 1000+ команд</p>
+            </div>
+            <h1>Продаем не доступ, а решение конфликтов и экономию нервов.</h1>
+            <p className="main-content-p">
+              Попробуй и открой для себя новую платформу с автоматизацией
+            </p>
+            <div className="button-container">
+              <button className="get-started-btn" onClick={() => (window.location.href = '/login')}>
+                Начать прямо сейчас
+                <div className="rect">
+                  <img src="src\assets\arrow.svg" alt="arrow" />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className='landing-footer'>
+        <h1>Coopera</h1>
+        <p>© 2026 Университет им. Н.И. Лобачевского</p>
+        <div className="icons">
+          <img src="src/assets/telegram-icon.svg" alt="telegram-icon" />
+          <img src="src/assets/github-icon.svg" alt="github-icon" />
+        </div>
+      </footer>
     </div>
   );
 };
