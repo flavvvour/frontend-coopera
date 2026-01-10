@@ -3,8 +3,8 @@ import { useState } from 'react';
 import './landing-page.css';
 
 export const LandingPage: React.FC = () => {
-
   const [activeTab, setActiveTab] = useState('telegram');
+  const [billingPeriod, setBillingPeriod] = useState('month');
 
   return (
     <div className="landing-page">
@@ -28,7 +28,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </header>
 
-      <section className='landing-main'>
+      <section className="landing-main">
         <div className="container">
           <div className="main-content">
             <div className="header-main">
@@ -39,10 +39,12 @@ export const LandingPage: React.FC = () => {
                 <img src="src/assets/star.svg" alt="" />
                 <img src="src/assets/star.svg" alt="" />
               </div>
-              <p className='header-main-p'>Доверяют более 1000+ команд</p>
+              <p className="header-main-p">Доверяют более 1000+ команд</p>
             </div>
             <h1>Платформа для командной работы</h1>
-            <p className='main-content-p'>Попробуй и открой для себя новую платформу с автоматизацией</p>
+            <p className="main-content-p">
+              Попробуй и открой для себя новую платформу с автоматизацией
+            </p>
             <div className="button-container">
               <button className="get-started-btn" onClick={() => (window.location.href = '/login')}>
                 Начать прямо сейчас
@@ -61,27 +63,123 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      <section className='landing-crossplatform'>
-        <p>кроссплатформенность</p>
+      <section className="landing-crossplatform">
+        <p>Кроссплатформенность</p>
         <h2>Работайте из любого места, будьте в курсе событий</h2>
-        <div className="features-section">
-          <div className="image-container">
+
+        <div className="image-slider-container">
+          <div className="image-wrapper">
             <img
-              className={activeTab === 'telegram' ? 'slide-from-left' : 'slide-from-right'}
-              src={activeTab === 'telegram' ? 'src/assets/telegram-bot.png' : 'src/assets/web-app.png'}
-              alt={activeTab === 'telegram' ? 'Telegram bot' : 'Web application'} />
+              className={`slide-image ${activeTab === 'telegram' ? 'active' : ''}`}
+              src="src/assets/telegram-bot.png"
+              alt="Telegram bot"
+            />
+            <img
+              className={`slide-image ${activeTab === 'web' ? 'active' : ''}`}
+              src="src/assets/web-app.png"
+              alt="Web application"
+            />
           </div>
+
           <div className="tabs">
-            <button className={activeTab === 'telegram' ? 'tab-btn active' : 'tab-btn'}
-            onClick={() => setActiveTab('telegram')}
+            <button
+              className={`tab-btn ${activeTab === 'telegram' ? 'active' : ''}`}
+              onClick={() => setActiveTab('telegram')}
             >
               Telegram-бот
             </button>
-            <button className={activeTab === 'web' ? 'tab-btn active' : 'tab-btn'}
-            onClick={() => setActiveTab('web')}
+            <button
+              className={`tab-btn ${activeTab === 'web' ? 'active' : ''}`}
+              onClick={() => setActiveTab('web')}
             >
               Web-приложение
             </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-price">
+        <p className="landing-price-p">Ценообразование</p>
+        <h2 className="landing-price-h2">Настрой платформу под себя</h2>
+        <div className={`month-year-tabs ${billingPeriod === 'year' ? 'year-active' : ''}`}>
+          <button
+            className={billingPeriod === 'month' ? 'active' : ''}
+            onClick={() => setBillingPeriod('month')}
+          >
+            Месяц
+          </button>
+          <button
+            className={billingPeriod === 'year' ? 'active' : ''}
+            onClick={() => setBillingPeriod('year')}
+          >
+            Год
+          </button>
+        </div>
+        <div className="tariff-plan">
+          <div className="plan-card">
+            <div className="base-plan">
+              <div className="plan-content">
+                <h3>Базовый тариф</h3>
+                <h4>Бесплатно</h4>
+                <p>Что входит в тариф:</p>
+                <ul>
+                  <li>
+                    <img src="src/assets/check-mark.svg" alt="" />1 команда (до 4-х человек)
+                  </li>
+                  <li>
+                    <img src="src/assets/check-mark.svg" alt="" />
+                    Ручное назначение задач
+                  </li>
+                  <li>
+                    <img src="src/assets/check-mark.svg" alt="" />
+                    Базовая аналитика
+                  </li>
+                </ul>
+              </div>
+              <button className="plan-button">Попробуй сейчас</button>
+            </div>
+          </div>
+
+          <div className="plan-card">
+            <div className="premium-plan">
+              <div className="plan-content">
+                <h3>Премиум тариф</h3>
+                <h4>{billingPeriod === 'month' ? '199 руб/месяц' : '2 099 руб/год'}</h4>
+                <p>Что входит в тариф:</p>
+                <ul>
+                  <li>
+                    <img src="src/assets/check-mark.svg" alt="" />
+                    10 команд (до 8-х человек)
+                  </li>
+                  <li>
+                    <img src="src/assets/check-mark.svg" alt="" />
+                    Авто-распределение задач
+                  </li>
+                  <li>
+                    <img src="src/assets/check-mark.svg" alt="" />
+                    Уведомления о назначении
+                  </li>
+                  <li>
+                    <img src="src/assets/check-mark.svg" alt="" />
+                    Расширенная аналитика
+                  </li>
+                </ul>
+              </div>
+              <button className="plan-button">
+                {billingPeriod === 'month' ? 'Оплатить месяц' : 'Оплатить год'}
+              </button>
+            </div>
+          </div>
+
+          <div className="plan-card">
+            <div className="custom-plan">
+              <div className="plan-content">
+                <h3>Настраиваемый тариф</h3>
+                <h4>Для бизнеса</h4>
+                <p>Идеально подходит для малого бизнеса, начинающего с автоматизации</p>
+              </div>
+              <button className="plan-button">Связаться с нами</button>
+            </div>
           </div>
         </div>
       </section>
