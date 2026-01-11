@@ -3,7 +3,12 @@
 }
 
 .landing-header {
-  background: linear-gradient(180deg, rgba(0, 133, 242, 0.3) 40%, rgba(0, 133, 242, 0.3) 40%, rgba(255, 255, 255, 0.4) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 133, 242, 0.3) 40%,
+    rgba(0, 133, 242, 0.3) 40%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
   border-radius: 30px;
   padding-bottom: 500px;
 }
@@ -18,11 +23,13 @@
   margin: 20px auto 0 auto;
 }
 
-.logo h1{
-  font-family: Zona Pro, sans-serif;
+.logo h1 {
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 18px;
   font-weight: 700;
-  color: #003D6E;
+  color: #003d6e;
 }
 
 .header-nav {
@@ -31,11 +38,13 @@
   text-decoration: none;
 }
 
-.header-nav a{
-  font-family: Zona Pro, sans-serif;
+.header-nav a {
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 16px;
   font-weight: 400;
-  color: #003D6E;
+  color: #003d6e;
   text-decoration: none;
 }
 
@@ -44,10 +53,12 @@
   padding: 11px 18px;
   border-radius: 30px;
   border: none;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #003D6E;
+  color: #003d6e;
   cursor: pointer;
   transition: all 0.4s ease-in-out;
 }
@@ -81,16 +92,18 @@
   gap: 0px;
 }
 
-.stars img{
+.stars img {
   width: 20px;
   height: 20px;
 }
 
-.landing-main .header-main-p{
-  font-family: Zona Pro, sans-serif;
+.landing-main .header-main-p {
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 14px;
   font-weight: 600;
-  color: #003D6E;
+  color: #003d6e;
 }
 
 .main-content {
@@ -100,18 +113,22 @@
 }
 .main-content h1 {
   width: 739px;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 72px;
   line-height: 68px;
   font-weight: 600;
-  color: #003D6E;
+  color: #003d6e;
   text-align: center;
   margin-bottom: 31px;
 }
 
 .main-content-p {
   width: 460px;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 24px;
   line-height: 28px;
   font-weight: 400;
@@ -135,7 +152,9 @@
   padding: 4px 4px 4px 17px;
   border-radius: 50px;
   border: none;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 16px;
   font-weight: 600;
   line-height: 19px;
@@ -162,19 +181,20 @@
   border-radius: 50px;
   padding: 17px 28px;
   border: none;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 19px;
-  color: #003D6E;
+  color: #003d6e;
   cursor: pointer;
 }
 
 .main-demo {
   padding: 5px;
   background: linear-gradient(180deg, rgba(0, 133, 242, 0.2), rgba(255, 255, 255, 0.2));
-  border-radius: 18px; 
-
+  border-radius: 18px;
 }
 .main-demo img {
   max-width: 1189px;
@@ -186,21 +206,25 @@
   justify-content: center;
   align-items: center;
   background-color: #fff;
-    margin-bottom: 80px;
+  margin-bottom: 80px;
 }
 
-.landing-crossplatform p{
-  font-family: Zona Pro, sans-serif;
+.landing-crossplatform p {
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 15px;
-  color: #003D6E;
+  color: #003d6e;
   margin-bottom: 20px;
 }
 
-.landing-crossplatform h2{
+.landing-crossplatform h2 {
   width: 900px;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-weight: 600;
   font-size: 52px;
   line-height: 61px;
@@ -220,7 +244,9 @@
   transition: all 0.3s ease;
   font-size: 16px;
   font-weight: 600;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   border: 1px solid #ffffff05;
 }
 
@@ -251,7 +277,6 @@
   border-radius: 15px;
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-
 }
 
 /* Кнопки поверх картинки */
@@ -292,12 +317,12 @@
 
 .slide-image:nth-child(1) {
   transform: translateX(-100%);
-    border-radius: 20px;
+  border-radius: 20px;
 }
 
 .slide-image:nth-child(2) {
   transform: translateX(100%);
-    border-radius: 20px;
+  border-radius: 20px;
 }
 
 .slide-image.active {
@@ -311,24 +336,33 @@
   flex-direction: column;
   justify-content: center;
   text-align: center;
-  background: linear-gradient(180deg, rgba(0, 133, 242, 0.3) 40%, rgba(0, 133, 242, 0.3) 40%, rgba(255, 255, 255, 0.4) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 133, 242, 0.3) 40%,
+    rgba(0, 133, 242, 0.3) 40%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
   border-radius: 30px;
   padding-bottom: 500px;
   padding-top: 80px;
   align-items: center;
 }
 
-.landing-price-p{
-  font-family: Zona Pro, sans-serif;
+.landing-price-p {
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-weight: 600;
   text-transform: uppercase;
   font-size: 15px;
-  color: #003D6E;
+  color: #003d6e;
   margin-bottom: 20px;
 }
 
-.landing-price-h2{
-  font-family: Zona Pro, sans-serif;
+.landing-price-h2 {
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-weight: 600;
   font-size: 52px;
   line-height: 61px;
@@ -352,13 +386,13 @@
   border: none;
   border-radius: 30px;
   background-color: transparent;
-  color: #003D6E;
+  color: #003d6e;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .month-year-tabs button.active {
-  background-color: #4DA9F6;
+  background-color: #4da9f6;
   color: #ffffff;
 }
 
@@ -394,7 +428,9 @@
 .plan-content p {
   width: 300px;
   text-align: left;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-weight: 400;
   font-size: 18px;
 }
@@ -402,7 +438,9 @@
 .base-plan h3,
 .premium-plan h3,
 .custom-plan h3 {
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-weight: 400;
   font-size: 18px;
 }
@@ -410,15 +448,19 @@
 .base-plan h4,
 .premium-plan h4,
 .custom-plan h4 {
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-weight: 600;
   font-size: 40px;
-  color: #003D6E;
+  color: #003d6e;
 }
 
 .base-plan p,
 .premium-plan p {
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-weight: 600;
   font-size: 18px;
   margin: 0 0 14px 0;
@@ -445,7 +487,9 @@
 .premium-plan li {
   display: flex;
   align-items: center;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 16px;
 }
 
@@ -458,7 +502,9 @@
   color: #fff;
   border: none;
   border-radius: 30px;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -482,11 +528,13 @@
 
 .main-content-end h1 {
   width: 910px;
-  font-family: Zona Pro, sans-serif;
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 52px;
   line-height: 61px;
   font-weight: 600;
-  color: #003D6E;
+  color: #003d6e;
   text-align: center;
   margin-bottom: 24px;
 }
@@ -500,19 +548,23 @@
   margin: 0 auto;
 }
 
-.landing-footer h1{
-  font-family: Zona Pro, sans-serif;
+.landing-footer h1 {
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 18px;
   font-weight: 600;
-  color: #003D6E;
+  color: #003d6e;
 }
 
-.landing-footer p{
-  font-family: Zona Pro, sans-serif;
+.landing-footer p {
+  font-family:
+    Zona Pro,
+    sans-serif;
   font-size: 14px;
   line-height: 20px;
   font-weight: 400;
-  color: #003D6E;
+  color: #003d6e;
 }
 
 .icons {
@@ -521,7 +573,136 @@
   gap: 10px;
 }
 
-.icons img{
+.icons img {
   width: 24px;
   height: 24px;
+}
+
+.landing-steps {
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-bottom: 80px;
+}
+
+.header-steps {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-bottom: 56px;
+  gap: 91px;
+}
+
+.header-steps h1 {
+  width: 620px;
+  font-family:
+    Zona Pro,
+    sans-serif;
+  font-size: 40px;
+  line-height: 47px;
+  font-weight: 600;
+}
+
+.header-steps-column {
+  width: 490px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  justify-content: center;
+}
+
+.header-steps-column p {
+  padding-top: 7px;
+  font-family:
+    Zona Pro,
+    sans-serif;
+  font-size: 18px;
+  line-height: 21px;
+  font-weight: 400;
+}
+
+.header-steps-column button {
+  width: 225px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: space-between;
+  background-color: rgba(0, 133, 242, 0.7);
+  padding: 5px 4px 5px 17px;
+  border-radius: 50px;
+  border: none;
+  font-family:
+    Zona Pro,
+    sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.rect-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 37px;
+  height: 37px;
+  border-radius: 50px;
+  background-color: #fff;
+}
+
+.rect-steps:hover {
+  scale: 1.02;
+}
+
+/* .steps-blocks {
+  display: flex;
+  margin: 0 auto;
+  border: 1px solid #5a9ad0;
+  border-radius: 30px;
+} */
+
+.blocks {
+  width: 1200px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  margin: 18px 25px;
+  gap: 35px;
+  margin: 0 auto;
+}
+
+.first-block,
+.second-block,
+.third-block,
+.fourth-block {
+  position: relative;
+  border-radius: 30px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.3s ease-in-out;
+  user-select: none;
+}
+
+.first-block:hover,
+.second-block:hover,
+.third-block:hover,
+.fourth-block:hover {
+  border: 1px solid #aad4f5;
+  border-radius: 32px;
+  scale: 1.01;
+}
+
+.background-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.background-block-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 30px;
+  color: #003d6e;
 }

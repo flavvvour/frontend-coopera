@@ -98,6 +98,69 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      <section className="landing-steps">
+        <div className="header-steps">
+          <h1>Ваша идеальная платформа, для экономии личного времени</h1>
+          <div className="header-steps-column">
+            <p>
+              От продвинутых инструментов до автоматизации - мы разработали все, чтобы улучшить ваш
+              опыт работы в команде
+            </p>
+            <button>
+              Начать прямо сейчас
+              <div className="rect-steps">
+                <img src="src\assets\arrow.svg" alt="arrow" />
+              </div>
+            </button>
+          </div>
+        </div>
+        <div className="steps-blocks">
+          <div className="blocks">
+            <div className="first-block">
+              <div className="background-block">
+                <img
+                  src="src/assets/first-block.svg"
+                  alt="authorization"
+                  onContextMenu={e => e.preventDefault()}
+                  draggable="false"
+                />
+                <div className="background-block-text">
+                  <h2>Авторизация</h2>
+                  <p>Войдите через Telegram за 2 клика</p>
+                </div>
+              </div>
+            </div>
+            <div className="second-block">
+              <div className="background-block">
+                <img src="src/assets/second-block.svg" alt="creating-a-team" />
+                <div className="background-block-text">
+                  <h2>Создание своей первой команды</h2>
+                  <p>Дайте название вашей команде и добавьте участников</p>
+                </div>
+              </div>
+            </div>
+            <div className="third-block">
+              <div className="background-block">
+                <img src="src/assets/third-block.svg" alt="adding-participants" />
+                <div className="background-block-text">
+                  <h2>Добавление участников в команду</h2>
+                  <p>Пригласите участников по никнейму в Telegram</p>
+                </div>
+              </div>
+            </div>
+            <div className="fourth-block">
+              <div className="background-block">
+                <img src="src/assets/fourth-block.svg" alt="creating-a-tasks" />
+                <div className="background-block-text">
+                  <h2>Создание первых задач</h2>
+                  <p>Заполните поля с названием и описанием</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="landing-price">
         <p className="landing-price-p">Ценообразование</p>
         <h2 className="landing-price-h2">Настрой платформу под себя</h2>
@@ -213,7 +276,7 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      <footer className='landing-footer'>
+      <footer className="landing-footer">
         <h1>Coopera</h1>
         <p>© 2026 Университет им. Н.И. Лобачевского</p>
         <div className="icons">
