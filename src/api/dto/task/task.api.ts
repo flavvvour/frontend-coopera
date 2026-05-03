@@ -3,7 +3,7 @@ import type { GetTaskDTO } from './get/task.types';
 // import type { UpdateTaskRequest } from '@/domain/task.types';
 import type { UpdateTaskRequestDTO } from './update/task.types';
 import type { PatchTaskStatusDTO } from './patch/task.types';
-const API_URL = 'http://localhost:8080/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 // GET (В ДТО именно массив возвращается)
 export async function getTask(team_id: number): Promise<GetTaskDTO[]> {

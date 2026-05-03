@@ -4,25 +4,26 @@ import { LandingPage } from '@/pages/landing';
 import { DashboardPage } from '@/pages/dashboard/ui/dashboard-page';
 import { LoginPage } from '@/pages/login';
 import { TelegramAuthPage } from '@/pages/telegram-auth/ui/telegram-auth-page';
+import { AuthCallbackPage } from '@/pages/auth-callback/ui/auth-callback-page';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const username = localStorage.getItem('username');
 
-  // Если нет username - сразу редирект
-  if (!username) {
-    console.log('Нет username в localStorage');
-    return <Navigate to="/login" replace />;
-  }
-
-  // Можно добавить дополнительную проверку
-  // Например, что username не пустая строка
-  if (username.trim() === '') {
+  if (!username || username.trim() === '') {
     localStorage.removeItem('username');
     return <Navigate to="/login" replace />;
   }
 
-  console.log('Пользователь авторизован:', username);
   return <>{children}</>;
+};
+
+// Если приложение открыто внутри Telegram (Mini App) — сразу на /auth
+const LoginRoute: React.FC = () => {
+  const isTelegramWebApp = Boolean(window.Telegram?.WebApp?.initData);
+  if (isTelegramWebApp) {
+    return <Navigate to="/auth" replace />;
+  }
+  return <LoginPage />;
 };
 
 export const App: React.FC = () => {
@@ -30,10 +31,10 @@ export const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<LoginRoute />} />
         <Route path="/auth" element={<TelegramAuthPage />} />
+        <Route path="/auth-callback" element={<AuthCallbackPage />} />
 
-        {/* Защищенный маршрут дашборда */}
         <Route
           path="/dashboard/*"
           element={

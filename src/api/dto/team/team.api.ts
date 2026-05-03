@@ -2,7 +2,7 @@ import type { GetTeamDTO } from './get/team.types';
 import type { CreateTeamRequestDTO, CreateTeamResponseDTO } from './post/team.types';
 import type { DeleteTeamResponseDTO } from './delete/team.types';
 
-const API_URL = 'http://localhost:8080/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 // GET
 export async function getTeam(team_id: number): Promise<GetTeamDTO> {

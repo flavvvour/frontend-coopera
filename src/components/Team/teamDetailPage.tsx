@@ -51,7 +51,7 @@ export function TeamDetailPage() {
   };
 
   // Получаем данные о текущем пользователе
-  const username = localStorage.getItem('username') || 'flavvvour';
+  const username = localStorage.getItem('username') ?? '';
   const {
     inviteByUsername,
     loading: invitingUser,

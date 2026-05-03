@@ -9,6 +9,7 @@ export default defineConfig({
   server: {
     port: 3000,
     open: false,
+    allowedHosts: ['imaging-grope-cheddar.ngrok-free.dev'],
     // Добавляем проксирование для API запросов
     proxy: {
       '/api': {

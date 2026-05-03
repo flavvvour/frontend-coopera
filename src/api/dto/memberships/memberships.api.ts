@@ -2,7 +2,7 @@ import type { DeleteMemberDTO } from './delete/memberships.types';
 import type { AddMembersResponseDTO } from './post/memberships.types';
 import { mapToAddMembersResponse } from './memberships.mapper';
 import type { AddMembersResponse } from '../../../domain/memberships.types';
-const API_URL = 'http://localhost:8080/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 // POST
 export async function AddMembers(team_id: number, user_id: number): Promise<AddMembersResponse> {

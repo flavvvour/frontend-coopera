@@ -29,7 +29,7 @@ export function UserTeamsPage({ username }: { username: string }) {
     }
 
     try {
-      const userId = data?.id || 1;
+      const userId = data?.id;
       const createdTeam = await createTeam(userId, newTeamName.trim());
 
       alert(`Команда "${createdTeam.name}" успешно создана!`);

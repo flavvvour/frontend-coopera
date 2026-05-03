@@ -22,7 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange }) => {
   const navigate = useNavigate();
 
   // Получаем username из localStorage или используем дефолтный
-  const username = localStorage.getItem('username') || 'flavvvour';
+  const username = localStorage.getItem('username') ?? '';
 
   // Используем ваш хук для получения пользователя
   const { data: user, loading: userLoading, error: userError } = useHookGetUser(username);

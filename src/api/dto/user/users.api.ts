@@ -1,6 +1,6 @@
 import type { GetUserDTO } from './get/user.types';
 
-const API_URL = 'http://localhost:8080/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 // по username получение пользователя
 export async function getUser(username: string): Promise<GetUserDTO> {

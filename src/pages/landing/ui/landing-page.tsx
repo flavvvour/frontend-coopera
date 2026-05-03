@@ -8,7 +8,7 @@ export const LandingPage: React.FC = () => {
 
   return (
     <div className="landing-page">
-      {/* Шапка */}
+
       <header className="landing-header">
         <div className="container">
           <div className="header-content">

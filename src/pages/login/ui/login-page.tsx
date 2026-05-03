@@ -1,26 +1,8 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import './login-page.css';
 
 export const LoginPage: React.FC = () => {
-  const navigate = useNavigate();
-  const username = localStorage.getItem('username');
-
-  const handleLogout = () => {
-    console.log('Выход из системы...');
-
-    localStorage.removeItem('username');
-    localStorage.removeItem('telegram_id');
-    localStorage.removeItem('first_name');
-    localStorage.removeItem('last_name');
-
-    if (import.meta.env.DEV) {
-      sessionStorage.removeItem('is-logging-out');
-      sessionStorage.removeItem('switch-to-user');
-    }
-
-    navigate('/auth');
-  };
+  const botName = import.meta.env.VITE_TELEGRAM_BOT_NAME;
 
   return (
     <div className="login-page">
@@ -31,38 +13,14 @@ export const LoginPage: React.FC = () => {
           <button
             className="telegram-login-btn"
             onClick={() => {
-              const botUsername = 'test_coopera_bot';
-              window.location.href = `https://t.me/${botUsername}?start=webapp`;
+              window.location.href = `https://t.me/${botName}`;
             }}
           >
             Войти через Telegram
             <div className="rect">
-              <img src="src\assets\arrow.svg" alt="arrow" />
+              <img src="/src/assets/arrow.svg" alt="arrow" />
             </div>
           </button>
-        </div>
-
-        <div className="telegram-auth-section">
-          {import.meta.env.DEV && (
-            <div>
-              <button
-                type="button"
-                className="telegram-login-btn-test"
-                onClick={() => {
-                  if (username) {
-                    handleLogout();
-                    setTimeout(() => {
-                      navigate('/auth');
-                    }, 100);
-                  } else {
-                    navigate('/auth');
-                  }
-                }}
-              >
-                Быстрый вход (для разработки)
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>
