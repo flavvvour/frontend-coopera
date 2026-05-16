@@ -70,3 +70,16 @@ export async function getUserByParam(param: {
   const data = await res.json();
   return data;
 }
+
+export async function patchUserSettings(user_id: number, wallpaper: string, wallpaper_custom_url: string, theme: string): Promise<void> {
+  const url = `${API_URL}/users/settings`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_id, wallpaper, wallpaper_custom_url, theme }),
+  });
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`HTTP ${res.status}: ${errorText}`);
+  }
+}

@@ -7,7 +7,9 @@ export interface CreateTaskResponseDTO {
     status: string;
     created_by_user: number;
     created_at: string;
-    updated_at: string; 
+    updated_at: string;
+    tags?: string[];
+    priority?: string;
 }
 
 export interface CreateTaskRequestDTO {
@@ -17,4 +19,6 @@ export interface CreateTaskRequestDTO {
     assigned_to_member: number;
     title: string;
     description: string;
+    tags?: string[];
+    priority?: string;
 }

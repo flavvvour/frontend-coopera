@@ -15,15 +15,16 @@ export function useHookUpdateTask() {
       setLoading(true);
       setError(null);
 
-      // Вызываем API функцию, передавая поля из request
       const dto: UpdateTaskRequestDTO = await updateTask(
         request.currentUserId,
         request.taskId,
         request.points,
-        request.description
+        request.description,
+        request.title,
+        request.tags,
+        request.priority
       );
 
-      // Преобразуем DTO в доменную модель
       const result = mapUpdateTask(dto);
       setData(result);
       return result;

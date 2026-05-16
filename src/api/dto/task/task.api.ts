@@ -11,7 +11,7 @@ export async function getTask(team_id: number): Promise<GetTaskDTO[]> {
 
   console.log('Отправка запроса GET задач по команде:', url);
 
-  const res = await fetch(url);
+  const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) {
     const errorText = await res.text();
     console.error('Ошибка запроса:', res.status, errorText);
@@ -30,17 +30,21 @@ export async function createTask(
   current_user_id: number,
   assigned_to_member: number,
   title: string,
-  description: string
+  description: string,
+  tags?: string[],
+  priority?: string
 ): Promise<CreateTaskResponseDTO> {
   const url = `${API_URL}/tasks`;
 
   const requestBody: CreateTaskRequestDTO = {
-    team_id: team_id,
-    points: points,
-    current_user_id: current_user_id,
-    assigned_to_member: assigned_to_member,
-    title: title,
-    description: description,
+    team_id,
+    points,
+    current_user_id,
+    assigned_to_member,
+    title,
+    description,
+    ...(tags !== undefined && { tags }),
+    ...(priority !== undefined && { priority }),
   };
 
   console.log('Отправка запроса POST:', url, requestBody);
@@ -92,15 +96,21 @@ export async function updateTask(
   current_user_id: number,
   task_id: number,
   points: number,
-  description: string
+  description: string,
+  title?: string,
+  tags?: string[],
+  priority?: string
 ): Promise<UpdateTaskRequestDTO> {
   const url = `${API_URL}/tasks`;
 
   const requestBody: UpdateTaskRequestDTO = {
-    current_user_id: current_user_id,
-    task_id: task_id,
-    points: points,
-    description: description,
+    current_user_id,
+    task_id,
+    points,
+    description,
+    ...(title !== undefined && { title }),
+    ...(tags !== undefined && { tags }),
+    ...(priority !== undefined && { priority }),
   };
 
   console.log('Отправка запроса PATCH:', url, requestBody);

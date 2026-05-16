@@ -23,17 +23,21 @@ export function mapCreateTaskResponse(dto: CreateTaskResponseDTO): CreateTaskRes
     createdByUser: dto.created_by_user,
     createdAt: dto.created_at,
     updatedAt: dto.updated_at,
+    tags: dto.tags ?? [],
+    priority: dto.priority ?? 'low',
   };
 }
 
 export function mapCreateTaskRequest(dto: CreateTaskRequest): CreateTaskRequestDTO {
   return {
     team_id: dto.teamId,
-    points: dto.points,
+    points: dto.points ?? 1,
     current_user_id: dto.currentUserId,
     assigned_to_member: dto.assignedToMember,
     title: dto.title,
     description: dto.description,
+    tags: dto.tags,
+    priority: dto.priority,
   };
 }
 
@@ -49,6 +53,9 @@ export function mapGetTask(dto: GetTaskDTO): Task {
     createdByUser: dto.created_by_user,
     createdAt: dto.created_at,
     updatedAt: dto.updated_at,
+    tags: dto.tags ?? [],
+    priority: dto.priority ?? 'low',
+    commentCount: dto.comment_count ?? 0,
   };
 }
 
@@ -65,6 +72,9 @@ export function mapUpdateTask(dto: UpdateTaskRequestDTO): UpdateTaskRequest {
     taskId: dto.task_id,
     points: dto.points,
     description: dto.description,
+    title: dto.title,
+    tags: dto.tags,
+    priority: dto.priority,
   };
 }
 

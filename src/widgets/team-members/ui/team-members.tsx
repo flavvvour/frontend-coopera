@@ -4,7 +4,8 @@
  * Отображение всех участников команды с их ролями, статусом и статистикой
  */
 
-import React from 'react';
+import React, { useState } from 'react';
+import { ConfirmModal } from '@/shared/ui/ConfirmModal';
 import './team-members.css';
 
 // Используем тот же интерфейс, что и в TeamDetail
@@ -32,6 +33,8 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({
   isManager = false,
   onRemoveMember,
 }) => {
+  const [confirmMember, setConfirmMember] = useState<TeamMember | null>(null);
+
   const sortedMembers = [...members].sort((a, b) => {
     // Менеджеры в начале
     if (a.role === 'manager' && b.role !== 'manager') return -1;
@@ -83,8 +86,8 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({
                   </span>
                   {member.points !== undefined && (
                     <>
-                      <span className="detail-divider">•</span>
-                      <span className="member-points">⭐ {member.points} очков</span>
+                      <span className="detail-divider"></span>
+                      <span className="member-points">{member.points} очков</span>
                     </>
                   )}
                 </div>
@@ -103,11 +106,7 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({
               {canRemove && onRemoveMember && (
                 <button
                   className="remove-member-btn"
-                  onClick={() => {
-                    if (window.confirm(`Удалить ${member.username} из команды?`)) {
-                      onRemoveMember(member.userId);
-                    }
-                  }}
+                  onClick={() => setConfirmMember(member)}
                   aria-label="Удалить участника"
                 >
                   ✕
@@ -122,6 +121,16 @@ export const TeamMembers: React.FC<TeamMembersProps> = ({
         <div className="no-members">
           <p>В команде пока нет участников</p>
         </div>
+      )}
+
+      {confirmMember && onRemoveMember && (
+        <ConfirmModal
+          title="Удалить участника?"
+          description={`«${confirmMember.username}» будет удалён из команды.`}
+          confirmLabel="Удалить"
+          onConfirm={() => { onRemoveMember(confirmMember.userId); setConfirmMember(null); }}
+          onCancel={() => setConfirmMember(null)}
+        />
       )}
     </div>
   );

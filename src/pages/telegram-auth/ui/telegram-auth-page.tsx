@@ -9,11 +9,12 @@ type AuthState =
 function buildCallbackUrl(webApp: TelegramWebApp): string | null {
   const user = webApp.initDataUnsafe?.user;
   if (user) {
-    const params = new URLSearchParams({
+    const p: Record<string, string> = {
       tg_id: user.id.toString(),
       username: user.username ?? user.first_name ?? `tg_${user.id}`,
-    });
-    return `${window.location.origin}/auth-callback?${params}`;
+    };
+    if (user.photo_url) p.photo_url = user.photo_url;
+    return `${window.location.origin}/auth-callback?${new URLSearchParams(p)}`;
   }
 
   // Резервный вариант — парсим raw initData
@@ -22,11 +23,12 @@ function buildCallbackUrl(webApp: TelegramWebApp): string | null {
     const userJson = params.get('user');
     if (userJson) {
       const parsed = JSON.parse(decodeURIComponent(userJson));
-      const p = new URLSearchParams({
+      const p: Record<string, string> = {
         tg_id: parsed.id.toString(),
         username: parsed.username ?? parsed.first_name ?? `tg_${parsed.id}`,
-      });
-      return `${window.location.origin}/auth-callback?${p}`;
+      };
+      if (parsed.photo_url) p.photo_url = parsed.photo_url;
+      return `${window.location.origin}/auth-callback?${new URLSearchParams(p)}`;
     }
   } catch {
     // не удалось распарсить

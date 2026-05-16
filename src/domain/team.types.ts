@@ -5,11 +5,15 @@ export interface Team {
   createdAt: string;
   createdByUser: number;
   members: Members[];
+  emoji?: string;
+  color?: string;
+  autoassign?: boolean;
 }
 
 export interface Members {
   name?: string;
   memberId: number;
+  userId: number;
   username: string;
   role: string;
 }
@@ -20,6 +24,8 @@ export interface CreateTeam {
   name: string;
   createdAt: string;
   createdBy: number;
+  emoji?: string;
+  color?: string;
 }
 
 // DELETE

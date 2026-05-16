@@ -3,4 +3,7 @@ export interface UpdateTaskRequestDTO {
     task_id: number;
     points: number;
     description: string;
+    title?: string;
+    tags?: string[];
+    priority?: string;
 }

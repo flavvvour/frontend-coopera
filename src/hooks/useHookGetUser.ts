@@ -6,11 +6,22 @@ import type { User } from '../domain/user.types';
 // username
 export function useHookGetUser(username: string) {
   const [data, setData] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [tick, setTick] = useState(0);
+
+  const refetch = () => setTick(n => n + 1);
 
   useEffect(() => {
-    if (!username) return;
+    if (!username) {
+      setData(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
 
     const load = async () => {
       try {
@@ -18,6 +29,7 @@ export function useHookGetUser(username: string) {
         setData(mapUser(dto));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
+        setData(null);
         setError(err);
       } finally {
         setLoading(false);
@@ -25,9 +37,9 @@ export function useHookGetUser(username: string) {
     };
 
     load();
-  }, [username]);
+  }, [username, tick]);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 }
 
 // id

@@ -1,129 +1,93 @@
-/* ===== МОДАЛЬНЫЕ ОКНА ===== */
-/* Переиспользуемые стили для всех модалок в приложении */
+/* ===== MODALS ===== */
 
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.6);
+  inset: 0;
+  background: rgba(20,15,10,.38);
+  backdrop-filter: blur(2px);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: var(--z-modal-backdrop);
-  padding: var(--spacing-lg);
-  backdrop-filter: blur(8px);
-  animation: fadeIn var(--transition-base);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  justify-content: center;
+  padding: 20px;
+  z-index: var(--z-modal);
+  animation: overlay-in .15s ease both;
 }
 
 .modal-content {
-  background: var(--color-bg-primary);
-  border-radius: var(--radius-lg);
+  background: var(--bg-elev);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
   width: 100%;
-  max-width: 600px;
+  max-width: 560px;
   max-height: 90vh;
   overflow: hidden;
-  box-shadow: var(--shadow-xl);
-  animation: modalSlideIn var(--transition-slow);
   display: flex;
   flex-direction: column;
-}
-
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  animation: sheet-in .22s ease both;
+  position: relative;
 }
 
 .modal-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border-light);
-  background: var(--color-bg-primary);
-  position: relative;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+  flex-shrink: 0;
 }
 
 .modal-header h2,
 .modal-header h3 {
-  margin: 0;
-  font-size: 20px;
-  color: var(--color-text-primary);
+  font-size: 16px;
   font-weight: 700;
-  line-height: 1.4;
+  color: var(--ink);
+  letter-spacing: -.01em;
 }
 
 .modal-body {
-  padding: var(--spacing-lg);
+  padding: 20px 24px;
   overflow-y: auto;
   flex: 1;
 }
 
 .modal-footer {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-top: 1px solid var(--color-border-light);
+  padding: 16px 24px;
+  border-top: 1px solid var(--line-soft);
   display: flex;
   justify-content: flex-end;
-  gap: var(--spacing-md);
-  background: var(--color-bg-primary);
-}
-
-.close-modal-btn {
-  background: none;
-  border: none;
-  font-size: 28px;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  padding: 0;
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-base);
+  gap: 10px;
   flex-shrink: 0;
 }
 
+.close-modal-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--bg-sunk);
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--ink-2);
+  font-size: 18px;
+  line-height: 1;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  flex-shrink: 0;
+}
 .close-modal-btn:hover {
-  background-color: var(--color-bg-tertiary);
-  color: var(--color-text-primary);
+  background: var(--line);
+  color: var(--ink);
   transform: rotate(90deg);
 }
 
-/* Адаптив */
+/* Modal Slide-in alias */
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(-16px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @media (max-width: 640px) {
-  .modal-overlay {
-    padding: var(--spacing-md);
-  }
-  
-  .modal-content {
-    max-width: 100%;
-    max-height: 95vh;
-  }
-  
-  .modal-header,
-  .modal-body {
-    padding: var(--spacing-md);
-  }
-  
-  .modal-footer {
-    flex-direction: column;
-  }
-  
-  .modal-footer button {
-    width: 100%;
-  }
+  .modal-overlay { padding: 12px; align-items: flex-end; }
+  .modal-content { max-width: 100%; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 }

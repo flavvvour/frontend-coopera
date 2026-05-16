@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/shared/api';
+import { getUserByParam } from '@/api/dto/user/users.api';
 import type { ApiError } from '@/shared/api/types';
 
 export const AuthCallbackPage: React.FC = () => {
@@ -11,6 +12,7 @@ export const AuthCallbackPage: React.FC = () => {
     const params = new URLSearchParams(window.location.search);
     const tgId = params.get('tg_id');
     const username = params.get('username');
+    const photoUrl = params.get('photo_url') ?? undefined;
 
     if (!tgId || !username) {
       navigate('/login', { replace: true });
@@ -21,7 +23,7 @@ export const AuthCallbackPage: React.FC = () => {
 
     const login = async () => {
       try {
-        await apiClient.createUser({ telegramId, username });
+        await apiClient.createUser({ telegramId, username, photoUrl });
       } catch (err: unknown) {
         const apiError = err as ApiError;
         // 409 = пользователь уже существует — это нормально
@@ -30,8 +32,20 @@ export const AuthCallbackPage: React.FC = () => {
         }
       }
 
-      localStorage.setItem('username', username);
-      localStorage.setItem('telegram_id', tgId);
+      sessionStorage.setItem('username', username);
+      sessionStorage.setItem('telegram_id', tgId);
+      if (photoUrl) sessionStorage.setItem('photo_url', photoUrl);
+
+      // Get user ID for activity API
+      try {
+        const userData = await getUserByParam({ username });
+        if (userData?.id) {
+          sessionStorage.setItem('user_id', String(userData.id));
+        }
+      } catch {
+        // non-fatal
+      }
+
       navigate('/dashboard', { replace: true });
     };
 

@@ -11,9 +11,13 @@ export function mapTeam(dto: GetTeamDTO): Team {
     createdByUser: dto.created_by_user,
     members: dto.members.map(t => ({
       memberId: t.member_id,
+      userId: t.user_id,
       username: t.username,
       role: t.role,
     })),
+    emoji: dto.emoji,
+    color: dto.color,
+    autoassign: dto.autoassign,
   };
 }
 
@@ -23,6 +27,8 @@ export function mapCreatedTeam(dto: CreateTeamResponseDTO): CreateTeam {
         name: dto.name,
         createdAt: dto.created_at,
         createdBy: dto.created_by,
+        emoji: dto.emoji,
+        color: dto.color,
     };
 }
 

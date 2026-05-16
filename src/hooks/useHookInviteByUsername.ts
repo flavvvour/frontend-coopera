@@ -61,8 +61,15 @@ export function useHookInviteByUsername() {
     }
   };
 
+  const clearError = () => {
+    setError(null);
+    setIsAlreadyInTeamError(false);
+    setIsUserNotFoundError(false);
+  };
+
   return {
     inviteByUsername,
+    clearError,
     loading,
     error,
     isAlreadyInTeamError,

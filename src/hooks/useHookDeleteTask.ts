@@ -24,6 +24,7 @@ export function useHookDeleteTask() {
       await deleteTask(requestDTO.task_id, requestDTO.current_user_id);
 
       setSuccess(true);
+      window.dispatchEvent(new CustomEvent('coop_activity_updated'));
 
       return {
         success: true,

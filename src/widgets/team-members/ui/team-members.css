@@ -1,260 +1,157 @@
-/* Team Members Widget Styles */
-
+/* ── Widget ───────────────────────────────────────────────────────────────── */
 .team-members-widget {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--bg-elev);
+  border-radius: var(--r-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--line-soft);
+  box-shadow: var(--shadow-sm);
 }
 
+/* ── Header ──────────────────────────────────────────────────────────────── */
 .members-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .members-header h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
   margin: 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: #111827;
 }
 
 .members-stats {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #6b7280;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--ink-3);
 }
 
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+.stat { display: flex; align-items: center; gap: 0.3rem; }
+.stat-icon { font-size: 0.9rem; }
+.stat-divider { color: var(--line); }
 
-.stat-icon {
-  font-size: 16px;
-}
-
-.stat-divider {
-  color: #d1d5db;
-}
-
-/* Members List */
+/* ── Members list ────────────────────────────────────────────────────────── */
 .members-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.5rem;
 }
 
+/* ── Member card ─────────────────────────────────────────────────────────── */
 .member-card {
   display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  padding: 16px;
-  background: #f9fafb;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  transition: all 0.2s;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-sunk);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r);
+  padding: 0.85rem;
+  transition: background var(--t-fast), border-color var(--t-fast);
   position: relative;
 }
 
-.member-card:hover {
-  background: #f3f4f6;
-  border-color: #d1d5db;
-}
-
 .member-card.current-user {
-  background: #eff6ff;
-  border-color: #3b82f6;
+  background: rgba(91,141,239,.06);
+  border-color: rgba(91,141,239,.22);
+}
+.member-card:hover {
+  background: rgba(91,141,239,.08);
+  border-color: rgba(91,141,239,.25);
 }
 
-.member-card.current-user:hover {
-  background: #dbeafe;
-}
-
-/* Avatar */
 .member-avatar {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  font-size: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
   flex-shrink: 0;
 }
 
-/* Member Info */
-.member-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.member-info { flex: 1; min-width: 0; }
 
 .member-name {
-  font-size: 16px;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--ink);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
 }
 
 .you-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  background: #3b82f6;
-  color: white;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
   border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
 }
 
 .member-details {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .role-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
   border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
+  font-family: var(--font-sans);
+  flex-shrink: 0;
+  letter-spacing: 0;
 }
+.role-badge.manager { background: rgba(91,141,239,.13); color: var(--accent); }
+.role-badge.member  { background: var(--bg-sunk); color: var(--ink-3); }
 
-.role-badge.manager {
-  background: rgb(0,133,242,0.15);
-  color: #0085f2;
-}
+.detail-divider { color: var(--line); font-size: 0.7rem; }
 
-.role-badge.member {
-  background: rgb(0,133,242,0.15);
-  color: #0085f2;
-}
+.member-points { font-size: 0.75rem; color: var(--ink-3); }
 
-.detail-divider {
-  color: #d1d5db;
-}
+.member-joined { font-size: 0.72rem; color: var(--ink-3); margin-top: 0.2rem; }
 
-.member-points {
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.member-joined {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-/* Remove Button */
 .remove-member-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
   width: 28px;
   height: 28px;
-  border-radius: 6px;
-  border: none;
+  border-radius: 8px;
   background: transparent;
-  color: #9ca3af;
+  border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  transition: all 0.2s;
+  color: var(--ink-3);
+  font-size: 0.9rem;
+  transition: background var(--t-fast), color var(--t-fast);
+  flex-shrink: 0;
 }
 
 .remove-member-btn:hover {
-  background: #fee2e2;
-  color: #dc2626;
+  background: rgba(91,141,239,.1);
+  color: var(--danger);
 }
 
-/* No Members */
+/* ── Empty ───────────────────────────────────────────────────────────────── */
 .no-members {
   text-align: center;
-  padding: 40px 20px;
-  color: #9ca3af;
-}
-
-.no-members p {
-  margin: 0;
-  font-size: 14px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .team-members-widget {
-    padding: 16px;
-  }
-
-  .members-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .member-card {
-    flex-direction: column;
-    padding: 12px;
-    gap: 12px;
-  }
-
-  .member-avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-  }
-
-  .member-info {
-    width: 100%;
-  }
-
-  .member-name {
-    font-size: 14px;
-  }
-
-  .member-details {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .detail-divider {
-    display: none;
-  }
-
-  .member-actions {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .member-actions .action-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 10px;
-    font-size: 14px;
-  }
-
-  .add-member-btn {
-    width: 100%;
-    justify-content: center;
-  }
+  padding: 2rem;
+  color: var(--ink-3);
+  font-size: 0.875rem;
 }

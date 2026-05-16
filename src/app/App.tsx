@@ -7,10 +7,10 @@ import { TelegramAuthPage } from '@/pages/telegram-auth/ui/telegram-auth-page';
 import { AuthCallbackPage } from '@/pages/auth-callback/ui/auth-callback-page';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const username = localStorage.getItem('username');
+  const username = sessionStorage.getItem('username');
 
   if (!username || username.trim() === '') {
-    localStorage.removeItem('username');
+    sessionStorage.removeItem('username');
     return <Navigate to="/login" replace />;
   }
 

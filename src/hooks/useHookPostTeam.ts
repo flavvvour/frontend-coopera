@@ -8,11 +8,11 @@ export function useHookPostTeam() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const createNewTeam = async (userId: number, name: string) => {
+  const createNewTeam = async (userId: number, name: string, emoji?: string, color?: string) => {
     try {
       setLoading(true);
       setError(null);
-      const dto = await createTeam(userId, name);
+      const dto = await createTeam(userId, name, emoji, color);
       const createdTeam = mapCreatedTeam(dto);
       setData(createdTeam);
       return createdTeam;

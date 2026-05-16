@@ -1,120 +1,152 @@
-/* ===== КНОПКИ ===== */
-/* Переиспользуемые стили для кнопок */
+/* ===== BUTTONS ===== */
 
-/* Базовый стиль */
 .btn {
-  padding: 12px 24px;
-  border-radius: var(--radius-md);
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-  transition: all var(--transition-base);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  min-height: 44px;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast), border-color var(--t-fast);
+  user-select: none;
+  text-decoration: none;
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: .5;
   cursor: not-allowed;
-  transform: none !important;
+  pointer-events: none;
 }
 
-/* Первичная кнопка */
-.btn-primary,
-.create-btn {
-  background: var(--color-primary);
-  color: white;
-  border: 2px solid transparent;
+/* Primary */
+.btn-primary, .create-btn, .confirm-btn, .modal-confirm-btn, .retry-button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  box-shadow: var(--shadow-md);
 }
-
 .btn-primary:hover:not(:disabled),
-.create-btn:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-  transform: translateY(-2px);
+.create-btn:hover:not(:disabled),
+.confirm-btn:hover:not(:disabled),
+.modal-confirm-btn:hover:not(:disabled),
+.retry-button:hover:not(:disabled) {
+  background: var(--accent-deep);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
 }
-
 .btn-primary:active:not(:disabled),
 .create-btn:active:not(:disabled) {
   transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+.confirm-btn:disabled,
+.modal-confirm-btn:disabled,
+.retry-button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Ghost */
+.btn-ghost, .cancel-btn, .modal-cancel-btn {
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+.btn-ghost:hover:not(:disabled),
+.cancel-btn:hover:not(:disabled),
+.modal-cancel-btn:hover:not(:disabled) {
+  background: var(--bg-sunk);
+  border-color: var(--line);
+  transform: translateY(-1px);
+}
+.modal-cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Secondary */
+.btn-secondary {
+  background: var(--bg-sunk);
+  color: var(--ink);
+  border: 1px solid var(--line-soft);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--line);
+  transform: translateY(-1px);
 }
 
-/* Вторичная кнопка */
-.btn-secondary,
-.cancel-btn {
-  background-color: var(--color-bg-tertiary);
-  color: var(--color-text-secondary);
-  border: 2px solid var(--color-border);
-}
-
-.btn-secondary:hover:not(:disabled),
-.cancel-btn:hover:not(:disabled) {
-  background-color: var(--color-border);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-/* Кнопка успеха */
-.btn-success {
-  background: var(--color-success);
-  color: white;
-  border: 2px solid transparent;
-}
-
-.btn-success:hover:not(:disabled) {
-  background: var(--color-success-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-/* Кнопка опасности */
+/* Danger */
 .btn-danger {
-  background: var(--color-danger);
-  color: white;
-  border: 2px solid transparent;
+  background: var(--danger);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
 }
-
 .btn-danger:hover:not(:disabled) {
-  background: var(--color-danger-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
 }
 
-/* Размеры */
+/* Success */
+.btn-success {
+  background: var(--good);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.btn-success:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+/* Sizes */
 .btn-sm {
-  padding: 8px 16px;
-  font-size: 14px;
-  min-height: 36px;
+  padding: 9px 16px;
+  font-size: 13px;
+  gap: 6px;
 }
-
 .btn-lg {
-  padding: 16px 32px;
-  font-size: 16px;
-  min-height: 52px;
+  padding: 14px 28px;
+  font-size: 14px;
 }
 
-/* Кнопка-иконка */
+/* Legacy aliases — inherit base .btn layout */
+.confirm-btn, .modal-confirm-btn, .retry-button,
+.cancel-btn, .modal-cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
+  user-select: none;
+}
+
+/* Icon-only */
 .btn-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border-radius: var(--radius-full);
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-/* Кнопка-ссылка */
+/* Link-style */
 .btn-link {
   background: none;
-  color: var(--color-primary);
+  color: var(--accent);
   padding: 0;
-  min-height: auto;
-  text-decoration: underline;
+  border-radius: 0;
+  font-size: inherit;
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
 }
-
 .btn-link:hover:not(:disabled) {
-  color: var(--color-primary-hover);
-  transform: none;
+  border-bottom-color: var(--accent);
 }

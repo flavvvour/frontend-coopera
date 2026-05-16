@@ -65,6 +65,7 @@ class ApiClient {
       baseURL: baseUrl,
       headers: {
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
       },
     });
 
@@ -321,7 +322,7 @@ class ApiClient {
 
   // ========== Users API ==========
 
-  async createUser(data: { telegramId: number; username: string }) {
+  async createUser(data: { telegramId: number; username: string; photoUrl?: string }) {
     const snakeData = toSnakeCase(data);
     const response = await this.axiosInstance.post('/users/', snakeData);
     return response.data;
@@ -368,7 +369,6 @@ class ApiClient {
 
   async getUserTeams(userId: number) {
     try {
-      // Попробуйте этот endpoint
       const response = await this.axiosInstance.get(`/users/${userId}/teams`);
       console.log('✅ getUserTeams response:', response.data);
       return response.data;

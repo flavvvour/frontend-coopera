@@ -9,6 +9,8 @@ export interface CreateTaskResponse {
   createdByUser: number;
   createdAt: string;
   updatedAt: string;
+  tags?: string[];
+  priority?: string;
 }
 
 export interface CreateTaskRequest {
@@ -18,6 +20,8 @@ export interface CreateTaskRequest {
   assignedToMember: number;
   title: string;
   description: string;
+  tags?: string[];
+  priority?: string;
 }
 
 export interface Task {
@@ -31,6 +35,9 @@ export interface Task {
   createdByUser: number;
   createdAt: string;
   updatedAt: string;
+  tags?: string[];
+  priority?: string;
+  commentCount?: number;
 }
 
 export interface DeleteTaskRequest {
@@ -51,6 +58,9 @@ export interface UpdateTaskRequest {
     taskId: number;
     points: number;
     description: string;
+    title?: string;
+    tags?: string[];
+    priority?: string;
 }
 
 export interface PatchTaskStatus {

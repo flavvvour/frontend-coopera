@@ -1,276 +1,320 @@
-// components/sidebar/sidebar.tsx
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useHookGetUser } from '@/hooks/useHookGetUser'; // Добавляем ваш хук
-import { TEST_USERS } from '@/utils/test-users';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useHookGetUser } from '@/hooks/useHookGetUser';
+import { CreateTeamModal, TeamIcon } from '@/components/User/CreateTeamModal';
+import {
+  LayoutDashboard, KanbanSquare, BarChart2, Users, Zap, UsersRound,
+  Plus, Bell, ChevronRight, ChevronLeft, Sun, Moon,
+  LogOut, ChevronDown, Check, Star, PlusCircle, Image, X, Copy
+} from 'lucide-react';
+import { WallpaperPicker, initWallpaper } from '@/widgets/wallpaper';
+import type { WallpaperKind } from '@/widgets/wallpaper';
+import { patchUserSettings } from '@/api/dto/user/users.api';
 import './sidebar.css';
 
-import dashboardIcon from '../../../assets/dashboard-logo.svg';
-import teamIcon from '../../../assets/team-logo.svg';
-import settingsIcon from '../../../assets/settings-logo.svg';
-import statisticsIcon from '../../../assets/statistics-logo.svg';
-import burgerIcon from '../../../assets/burger-logo.svg';
-import exitIcon from '../../../assets/exit-logo.svg';
-
-interface SidebarProps {
-  onCollapseChange?: (isCollapsed: boolean) => void;
+function encodeInviteCode(teamId: number): string {
+  return teamId.toString(36).toUpperCase().padStart(6, '0');
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onCollapseChange }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+const TEAM_EMOJIS = ['📚','🌱','🏠','🔧','🎨','🎓','💡','🌍','🤝','🎯','⚽','🎬'];
+
+interface SidebarProps {
+  onCollapseChange?: (collapsed: boolean) => void;
+  onNewTask?: () => void;
+  onNotifClick?: () => void;
+  notificationCount?: number;
+}
+
+function getTeamEmoji(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes('курс') || n.includes('диплом') || n.includes('вкр')) return '📚';
+  if (n.includes('дом') || n.includes('сосед') || n.includes('ремонт')) return '🏠';
+  if (n.includes('волонтер') || n.includes('помощь')) return '🤝';
+  if (n.includes('спорт') || n.includes('футбол')) return '⚽';
+  return '👥';
+}
+
+function getTeamDisplay(emoji: string | undefined, color: string | undefined, name: string) {
+  return {
+    emoji: emoji || getTeamEmoji(name),
+    color: color || 'var(--bg-sunk)',
+  };
+}
+
+function getInitials(name: string) {
+  return name.slice(0, 2).toUpperCase();
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  onCollapseChange,
+  onNewTask,
+  onNotifClick,
+  notificationCount = 0,
+}) => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [dark, setDark] = useState(() => document.documentElement.getAttribute('data-theme') === 'dark');
+  const [teamMenuOpen, setTeamMenuOpen] = useState(false);
+  const [photoFailed, setPhotoFailed] = useState(false);
+  const [wpPickerOpen, setWpPickerOpen] = useState(false);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
+  const teamMenuRef = useRef<HTMLDivElement>(null);
 
-  // Получаем username из localStorage или используем дефолтный
-  const username = localStorage.getItem('username') ?? '';
+  const username = sessionStorage.getItem('username') ?? '';
+  const { data: user, refetch: refetchUser } = useHookGetUser(username);
 
-  // Используем ваш хук для получения пользователя
-  const { data: user, loading: userLoading, error: userError } = useHookGetUser(username);
+  useEffect(() => {
+    const handler = () => refetchUser();
+    window.addEventListener('coop_team_created', handler);
+    window.addEventListener('coop_teams_updated', handler);
+    return () => {
+      window.removeEventListener('coop_team_created', handler);
+      window.removeEventListener('coop_teams_updated', handler);
+    };
+  }, []);
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: dashboardIcon, path: '/dashboard' },
-    { id: 'teams', label: 'Teams', icon: teamIcon, path: '/dashboard/teams' },
-    { id: 'statistics', label: 'Statistics', icon: statisticsIcon, path: '/dashboard/statistics' }, // Добавьте эту строку
-    { id: 'settings', label: 'Settings', icon: settingsIcon, path: '/dashboard/settings' },
+  // extract teamId from URL if present; persist last visited team
+  const teamIdMatch = location.pathname.match(/\/dashboard\/teams\/(\d+)/);
+  const urlTeamId = teamIdMatch ? Number(teamIdMatch[1]) : null;
+
+  useEffect(() => {
+    if (urlTeamId) sessionStorage.setItem('coop_last_team', String(urlTeamId));
+  }, [urlTeamId]);
+
+  const savedTeamId = (() => {
+    const s = sessionStorage.getItem('coop_last_team');
+    return s ? Number(s) : null;
+  })();
+
+  const activeTeamId = urlTeamId ?? savedTeamId;
+  const activeTeam = user?.teams.find(t => t.id === activeTeamId) ?? user?.teams[0] ?? null;
+
+  // Initialize theme and wallpaper from user data when it loads
+  useEffect(() => {
+    if (!user) return;
+    // Init theme from user settings
+    const userTheme = user.theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', userTheme);
+    setDark(userTheme === 'dark');
+    // Init wallpaper from user settings
+    initWallpaper(user.wallpaper as WallpaperKind || 'none', user.wallpaperCustomUrl || '', user.id);
+  }, [user?.id]);
+
+  // Apply theme changes to DOM
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  }, [dark]);
+
+  // Save theme to DB when dark state changes (only after user is loaded)
+  useEffect(() => {
+    if (!user) return;
+    patchUserSettings(user.id, user.wallpaper || 'none', user.wallpaperCustomUrl || '', dark ? 'dark' : 'light').catch(() => {});
+  }, [dark]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (teamMenuRef.current && !teamMenuRef.current.contains(e.target as Node)) {
+        setTeamMenuOpen(false);
+      }
+    }
+    if (teamMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [teamMenuOpen]);
+
+  const toggle = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    onCollapseChange?.(next);
+  };
+
+  const navItems = [
+    { id: 'dashboard',  label: 'Главная',           Icon: LayoutDashboard, path: '/dashboard' },
+    { id: 'teams',      label: 'Команды',            Icon: UsersRound,      path: '/dashboard/teams' },
+    { id: 'kanban',     label: 'Канбан',             Icon: KanbanSquare,    path: activeTeam ? `/dashboard/teams/${activeTeam.id}` : '/dashboard/teams' },
+    { id: 'analytics',  label: 'Аналитика',          Icon: BarChart2,       path: '/dashboard/statistics' },
+    { id: 'team',       label: 'Участники',          Icon: Users,           path: activeTeam ? `/dashboard/teams/${activeTeam.id}?tab=members` : '/dashboard/teams' },
+    { id: 'autoassign', label: 'Автораспределение',  Icon: Zap,             path: activeTeam ? `/dashboard/teams/${activeTeam.id}?tab=autoassign` : '/dashboard/teams' },
   ];
 
-  const isActive = (path: string): boolean => {
-    if (path === '/dashboard') {
-      return location.pathname === '/dashboard';
-    }
-    return location.pathname.startsWith(path);
+  const isActive = (path: string) => {
+    const base = path.split('?')[0];
+    const tab = new URLSearchParams(path.split('?')[1] ?? '').get('tab');
+    if (base === '/dashboard') return location.pathname === '/dashboard';
+    if (base === '/dashboard/teams') return location.pathname === '/dashboard/teams';
+    if (tab) return location.pathname.startsWith(base) && location.search.includes(`tab=${tab}`);
+    if (base.includes('/dashboard/teams/')) return location.pathname.startsWith(base) && !location.search.includes('tab=');
+    return location.pathname.startsWith(base);
   };
 
-  const toggleSidebar = () => {
-    const newCollapsedState = !isCollapsed;
-    setIsCollapsed(newCollapsedState);
-    onCollapseChange?.(newCollapsedState);
+  const handleLogout = () => {
+    sessionStorage.removeItem('username');
+    sessionStorage.removeItem('telegram_id');
+    sessionStorage.removeItem('photo_url');
+    sessionStorage.removeItem('user_id');
+    sessionStorage.removeItem('coop_last_team');
+    navigate('/');
   };
 
-  // Функция очистки пользователя
-  const clearUser = () => {
-    localStorage.removeItem('username');
-    // Можно добавить очистку других данных если нужно
+  const switchTeam = (teamId: number) => {
+    setTeamMenuOpen(false);
+    navigate(`/dashboard/teams/${teamId}`);
   };
 
-  // ВЫХОД И ПЕРЕКЛЮЧЕНИЕ ПОЛЬЗОВАТЕЛЯ
-  // ЗАМЕНИТЕ эту функцию в sidebar.tsx:
-  // В sidebar.tsx - замените функцию handleLogout
-  const handleLogout = async () => {
-    console.group('🚪 Logout Process');
-
-    try {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔧 Режим разработки: выход из системы');
-
-        // 1. Очищаем данные пользователя
-        clearUser();
-        console.log('✅ Данные пользователя очищены');
-
-        // 2. НЕ устанавливаем флаг выхода (это для выбора пользователя)
-        // sessionStorage.removeItem('is-logging-out'); // ← УДАЛИТЕ ЭТО!
-
-        // 3. Редирект на ГЛАВНУЮ страницу (LandingPage)
-        console.log('🔄 Редирект на главную страницу');
-        navigate('/'); // ← ИЗМЕНИТЕ С /auth НА /
-      } else {
-        console.log('🚫 В продакшн режиме');
-
-        const telegram = window.Telegram;
-        if (telegram?.WebApp) {
-          telegram.WebApp.showAlert(
-            'Выйти из приложения?',
-            'Для смены аккаунта закройте Mini App и откройте заново с другим Telegram аккаунтом.',
-            () => {
-              clearUser();
-              telegram.WebApp.close();
-            }
-          );
-        } else {
-          clearUser();
-          navigate('/'); // ← ИЗМЕНИТЕ С /auth НА /
-        }
-      }
-    } catch (error) {
-      console.error('❌ Ошибка при выходе:', error);
-      clearUser();
-      navigate('/'); // ← ИЗМЕНИТЕ С /auth НА /
-    }
-
-    console.groupEnd();
+  const openCreateModal = () => {
+    setTeamMenuOpen(false);
+    setShowCreateModal(true);
   };
-
-  // Быстрое переключение пользователя (только в разработке)
-  // Исправьте функцию быстрого переключения:
-  const handleQuickSwitch = () => {
-    if (process.env.NODE_ENV !== 'development') return;
-    if (!user) return;
-
-    // Находим следующего пользователя
-    const currentIndex = TEST_USERS.findIndex(u => u.telegramId === user.telegramID);
-    const nextIndex = (currentIndex + 1) % TEST_USERS.length;
-    const nextUser = TEST_USERS[nextIndex];
-
-    console.log(`🔄 Быстрое переключение на: @${nextUser.username}`);
-
-    // Очищаем текущего пользователя
-    clearUser();
-
-    // Устанавливаем данные следующего пользователя
-    sessionStorage.setItem(
-      'switch-to-user',
-      JSON.stringify({
-        telegramId: nextUser.telegramId,
-        username: nextUser.username,
-      })
-    );
-
-    navigate('/auth?switch=true');
-  };
-
-  if (userLoading && !user) {
-    return (
-      <div className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-header-content">
-            {!isCollapsed && <h2 className="sidebar-title">Coopera</h2>}
-            <button className="sidebar-toggle" onClick={toggleSidebar}>
-              <img src={burgerIcon} alt="Меню" className="sidebar-toggle-icon" />
-            </button>
-          </div>
-        </div>
-        <div className="loading-placeholder">
-          <div className="loading-spinner"></div>
-          {!isCollapsed && <p>Загрузка...</p>}
-        </div>
-      </div>
-    );
-  }
-
-  // Если ошибка загрузки пользователя
-  if (userError && !user) {
-    return (
-      <div className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-header-content">
-            {!isCollapsed && <h2 className="sidebar-title">Coopera</h2>}
-            <button className="sidebar-toggle" onClick={toggleSidebar}>
-              <img src={burgerIcon} alt="Меню" className="sidebar-toggle-icon" />
-            </button>
-          </div>
-        </div>
-        <div className="error-placeholder">
-          <p>Ошибка загрузки</p>
-          <button onClick={() => navigate('/auth')} className="auth-btn">
-            Войти
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div
-      className={`sidebar ${isCollapsed ? 'sidebar--collapsed' : ''}`}
-      aria-label="Боковая панель навигации"
-    >
-      {/* Хедер с кнопкой сворачивания */}
-      <div className="sidebar-header">
-        <div className="sidebar-header-content">
-          {!isCollapsed && (
-            <h2 className="sidebar-title" aria-label="Название приложения">
-              Coopera
-            </h2>
-          )}
-          <button
-            className="sidebar-toggle"
-            onClick={toggleSidebar}
-            aria-label={isCollapsed ? 'Развернуть меню' : 'Свернуть меню'}
-            aria-expanded={!isCollapsed}
-          >
-            <img src={burgerIcon} alt="Меню" className="sidebar-toggle-icon" />
-          </button>
-        </div>
+    <>
+    <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
+
+      {/* Logo + collapse */}
+      <div className="sidebar-logo">
+        {!collapsed && <span className="sidebar-logo-text">Coopera</span>}
+        <button className="sidebar-collapse-btn" onClick={toggle} title={collapsed ? 'Развернуть' : 'Свернуть'}>
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </div>
 
-      {/* Навигация */}
-      <nav className="sidebar-nav" aria-label="Основная навигация">
-        <ul>
-          {menuItems.map(item => {
-            const active = isActive(item.path);
-            return (
-              <li key={item.id}>
-                <Link
-                  to={item.path}
-                  className={`nav-item ${active ? 'nav-item--active' : ''}`}
-                  title={isCollapsed ? item.label : ''}
-                  aria-current={active ? 'page' : undefined}
+      {/* Team Switcher */}
+      <div className="sidebar-team-wrap" ref={teamMenuRef}>
+        <button
+          className={`sidebar-team-btn ${teamMenuOpen ? 'open' : ''}`}
+          onClick={() => setTeamMenuOpen(v => !v)}
+          title={collapsed ? (activeTeam?.name ?? 'Команды') : ''}
+        >
+          <span
+            className="sidebar-team-emoji"
+            style={activeTeam ? { background: getTeamDisplay(activeTeam.emoji, activeTeam.color, activeTeam.name).color } : { background: 'var(--bg-sunk)' }}
+          >
+            <TeamIcon name={activeTeam ? getTeamDisplay(activeTeam.emoji, activeTeam.color, activeTeam.name).emoji : 'Users'} size={18} />
+          </span>
+          {!collapsed && (
+            <>
+              <span className="sidebar-team-info">
+                <span className="sidebar-team-name">{activeTeam?.name ?? 'Выбрать команду'}</span>
+                <span className="sidebar-team-role">{activeTeam?.role ?? ''}</span>
+              </span>
+              <ChevronDown size={14} className={`sidebar-team-chevron ${teamMenuOpen ? 'rotated' : ''}`} />
+            </>
+          )}
+        </button>
+
+        {teamMenuOpen && (
+          <div className="sidebar-team-menu pop-in">
+            <div className="sidebar-team-menu-label">ваши команды</div>
+            {(user?.teams ?? []).map(t => (
+              <button
+                key={t.id}
+                className={`sidebar-team-item ${t.id === activeTeam?.id ? 'active' : ''}`}
+                onClick={() => switchTeam(t.id)}
+              >
+                <span
+                  className="sidebar-team-item-emoji"
+                  style={{ background: getTeamDisplay(t.emoji, t.color, t.name).color }}
                 >
-                  {/* Проверяем, является ли иконка эмодзи или путем к файлу */}
-                  {typeof item.icon === 'string' && item.icon.length <= 2 ? (
-                    // Если это эмодзи (короткая строка)
-                    <span className="nav-item__emoji">{item.icon}</span>
-                  ) : (
-                    // Если это путь к файлу
-                    <img src={item.icon} alt={`${item.label} иконка`} className="nav-item__icon" />
-                  )}
-                  {!isCollapsed && <span className="nav-item__label">{item.label}</span>}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+                  <TeamIcon name={getTeamDisplay(t.emoji, t.color, t.name).emoji} size={16} />
+                </span>
+                <span className="sidebar-team-item-name">{t.name}</span>
+                {t.id === activeTeam?.id && <Check size={13} className="sidebar-team-item-check" />}
+              </button>
+            ))}
+            <div className="sidebar-team-menu-divider" />
+            <button className="sidebar-team-create" onClick={openCreateModal}>
+              <PlusCircle size={14} />
+              <span>Создать команду</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="sidebar-nav">
+        {navItems.map(({ id, label, Icon, path }) => {
+          const active = isActive(path);
+          return (
+            <Link
+              key={id}
+              to={path}
+              className={`sidebar-nav-item ${active ? 'active' : ''}`}
+              title={collapsed ? label : ''}
+            >
+              <Icon size={18} className="sidebar-nav-icon" />
+              {!collapsed && <span>{label}</span>}
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* Футер с информацией о пользователе */}
-      <div className="sidebar-footer">
-        <div className="user-info">
-          {!isCollapsed ? (
-            <>
-              <div className="user-details">
-                {/* ВСЁ В ОДНУ СТРОКУ БЕЗ ПРОБЕЛОВ */}
-                <div className="user-name-container">
-                  <span className="user-name">{user?.username || 'Гость'}</span>
-                </div>
-              </div>
-              <div className="user-actions">
-                {/* Кнопка быстрого переключения (только в разработке) */}
-                {process.env.NODE_ENV === 'development' && user && (
-                  <button
-                    className="switch-user-btn"
-                    onClick={handleQuickSwitch}
-                    aria-label="Быстрое переключение пользователя"
-                    title="Быстро переключить пользователя"
-                  >
-                    <span className="switch-icon">🔄</span>
-                  </button>
-                )}
-                {/* Кнопка выхода */}
-                <button
-                  className="logout-icon-btn"
-                  onClick={handleLogout}
-                  aria-label="Выйти из системы"
-                  title={process.env.NODE_ENV === 'development' ? 'Сменить пользователя' : 'Выйти'}
-                >
-                  <img src={exitIcon} alt="Иконка выхода" className="logout-icon" />
-                </button>
-              </div>
-            </>
-          ) : (
-            /* Свернутое состояние - только кнопка выхода */
-            <div className="user-actions">
-              <button
-                className="logout-icon-btn"
-                onClick={handleLogout}
-                aria-label="Выйти из системы"
-                title="Выйти"
-              >
-                <img src={exitIcon} alt="Иконка выхода" className="logout-icon" />
-              </button>
+      {/* Quick actions */}
+      <div className="sidebar-actions">
+        {!collapsed && <div className="sidebar-section-label">быстрые действия</div>}
+        <button
+          className="sidebar-action-btn"
+          onClick={onNewTask}
+          title={collapsed ? 'Новая задача' : ''}
+        >
+          <Plus size={17} />
+          {!collapsed && <span>Новая задача</span>}
+        </button>
+        <button
+          className={`sidebar-action-btn sidebar-notif-btn ${notificationCount > 0 ? 'has-badge' : ''}`}
+          title={collapsed ? 'Уведомления' : ''}
+          data-count={notificationCount > 9 ? '9+' : notificationCount}
+          onClick={onNotifClick}
+        >
+          <Bell size={17} />
+          {!collapsed && <span>Уведомления</span>}
+        </button>
+      </div>
+
+      {/* Footer: user + theme */}
+      <div className="sidebar-footer" style={{ position: 'relative' }}>
+        {wpPickerOpen && <WallpaperPicker onClose={() => setWpPickerOpen(false)} />}
+        <div className="sidebar-user" title={collapsed ? (user?.username ?? '') : ''}>
+          <div className="sidebar-user-avatar" style={{ background: 'var(--accent)' }}>
+            {user?.id && !photoFailed
+              ? <img src={`/api/v1/users/${user.id}/photo`} alt={user.username} onError={() => setPhotoFailed(true)} />
+              : <span>{getInitials(user?.username ?? 'U')}</span>
+            }
+          </div>
+          {!collapsed && (
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">{user?.username ?? '…'}</span>
+              <span className="sidebar-user-handle">@{user?.username ?? ''}</span>
             </div>
           )}
         </div>
+
+        <div className="sidebar-footer-btns">
+          <button
+            className="sidebar-icon-btn"
+            onClick={() => setWpPickerOpen(v => !v)}
+            title="Обои"
+          >
+            <Image size={16} />
+          </button>
+          <button
+            className="sidebar-icon-btn"
+            onClick={() => setDark(v => !v)}
+            title={dark ? 'Светлая тема' : 'Тёмная тема'}
+          >
+            {dark ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+          {!collapsed && (
+            <button className="sidebar-icon-btn" onClick={handleLogout} title="Выйти">
+              <LogOut size={16} />
+            </button>
+          )}
+        </div>
       </div>
-    </div>
+    </aside>
+
+    {showCreateModal && <CreateTeamModal onClose={() => setShowCreateModal(false)} />}
+    </>
   );
 };

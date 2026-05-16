@@ -28,7 +28,7 @@ export function useHookGetUserTasks(username: string): UseHookGetUserTasksResult
   const [error, setError] = useState<Error | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const { data: user, loading: userLoading, error: userError } = useHookGetUser(username);
+  const { data: user, loading: userLoading, error: userError, refetch: refetchUser } = useHookGetUser(username);
 
   const fetchTeamMemberData = useCallback(async (teamIds: { id: number }[], username: string) => {
     const teamMemberPromises = teamIds.map(async ({ id }) => {
@@ -125,8 +125,9 @@ export function useHookGetUserTasks(username: string): UseHookGetUserTasksResult
     fetchData();
   }, [fetchData, refreshTrigger]);
   const refresh = useCallback(async () => {
+    refetchUser();
     setRefreshTrigger(prev => prev + 1);
-  }, []);
+  }, [refetchUser]);
 
   const tasksAssignedToUser = useMemo(() => {
     if (!allTasks.length || !user || Object.keys(teamMemberMap).length === 0) {

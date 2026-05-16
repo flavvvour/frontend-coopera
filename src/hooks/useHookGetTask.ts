@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getTask } from '../api/dto/task/task.api';
 import { mapGetTask } from '../api/dto/task/task.mapper';
 import type { Task } from '../domain/task.types';
@@ -7,6 +7,7 @@ export function useHookGetTask(teamId: number) {
   const [data, setData] = useState<Task[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     if (!teamId) {
@@ -30,11 +31,16 @@ export function useHookGetTask(teamId: number) {
     };
 
     load();
-  }, [teamId]);
+  }, [teamId, refreshTrigger]);
+
+  const refresh = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   return {
     data,
     loading,
     error,
+    refresh,
   };
 }

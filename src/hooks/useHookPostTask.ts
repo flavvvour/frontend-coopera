@@ -34,7 +34,9 @@ export function useHookPostTask() {
         requestDto.current_user_id,
         requestDto.assigned_to_member,
         requestDto.title,
-        requestDto.description
+        requestDto.description,
+        requestDto.tags,
+        requestDto.priority
       );
 
       const result = mapCreateTaskResponse(responseDto);
