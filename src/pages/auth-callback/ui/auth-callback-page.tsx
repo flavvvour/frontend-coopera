@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '@/shared/api';
-import { getUserByParam } from '@/api/dto/user/users.api';
-import type { ApiError } from '@/shared/api/types';
+import { ApiError } from '@/shared/api/errors';
+import { getUserByParam } from '@/entities/user';
+import { useAuthStore } from '@/shared/store';
 
 export const AuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();
+  const setUser = useAuthStore(s => s.setUser);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -25,26 +27,19 @@ export const AuthCallbackPage: React.FC = () => {
       try {
         await apiClient.createUser({ telegramId, username, photoUrl });
       } catch (err: unknown) {
-        const apiError = err as ApiError;
-        // 409 = пользователь уже существует — это нормально
-        if (apiError?.response?.status !== 409) {
+        if (!(err instanceof ApiError && err.status === 409)) {
           throw err;
         }
       }
 
-      sessionStorage.setItem('username', username);
-      sessionStorage.setItem('telegram_id', tgId);
-      if (photoUrl) sessionStorage.setItem('photo_url', photoUrl);
+      setUser({ username, telegramId: tgId, photoUrl: photoUrl ?? undefined });
 
-      // Get user ID for activity API
       try {
         const userData = await getUserByParam({ username });
         if (userData?.id) {
-          sessionStorage.setItem('user_id', String(userData.id));
+          setUser({ userId: String(userData.id) });
         }
-      } catch {
-        // non-fatal
-      }
+      } catch { /* ignore */ }
 
       navigate('/dashboard', { replace: true });
     };
@@ -53,7 +48,7 @@ export const AuthCallbackPage: React.FC = () => {
       console.error('Auth callback error:', err);
       setError('Ошибка авторизации. Попробуйте снова.');
     });
-  }, [navigate]);
+  }, [navigate, setUser]);
 
   if (error) {
     return (

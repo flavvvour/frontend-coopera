@@ -19,7 +19,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@sentry/react": "^10.28.0",
-    "@tanstack/react-query": "^5.90.11",
+    "@tanstack/react-query": "^5.100.10",
     "axios": "^1.13.2",
     "humps": "^2.0.1",
     "lucide-react": "^1.14.0",
@@ -27,6 +27,7 @@
     "react-dom": "^19.2.0",
     "react-easy-crop": "^5.5.5",
     "react-router-dom": "^7.9.6",
+    "sonner": "^2.0.7",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

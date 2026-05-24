@@ -1,2 +1,2 @@
-export { NotificationsPanel, addActivity } from './ui/NotificationsPanel';
+export { NotificationsPanel } from './ui/NotificationsPanel';
 export type { ActivityEntry } from './ui/NotificationsPanel';

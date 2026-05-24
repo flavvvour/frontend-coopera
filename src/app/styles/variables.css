@@ -5,6 +5,7 @@
   --accent: #5b8def;
   --accent-soft: #d6e2fb;
   --accent-deep: #3d6dcd;
+  --accent-tint: color-mix(in srgb, var(--accent) 15%, transparent);
 
   /* Surfaces */
   --bg: #faf6ef;

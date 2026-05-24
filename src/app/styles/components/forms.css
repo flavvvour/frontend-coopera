@@ -57,6 +57,12 @@
   line-height: 1.5;
 }
 
+textarea.coop-input {
+  resize: none;
+  line-height: 1.5;
+  overflow-y: auto;
+}
+
 .form-group input:disabled,
 .form-group textarea:disabled,
 .form-group select:disabled {

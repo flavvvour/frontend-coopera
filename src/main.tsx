@@ -1,15 +1,17 @@
 import ReactDOM from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Sentry from '@sentry/react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
 import { App } from './app/App';
+import { AppErrorFallback } from '@/shared/ui/AppErrorFallback';
+import { queryClient } from '@/shared/lib/queryClient';
 import '@/app/styles/index.css';
 
-// Инициализация Sentry (только для production)
 if (import.meta.env.PROD) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
-    tracesSampleRate: 1.0, // Процент трейсов для отправки
+    tracesSampleRate: 1.0,
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration({
@@ -20,21 +22,13 @@ if (import.meta.env.PROD) {
   });
 }
 
-// Настройка React Query
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false, // Не перезагружать при фокусе окна
-      retry: 1, // Повторять запрос 1 раз при ошибке
-      staleTime: 5 * 60 * 1000, // Данные актуальны 5 минут
-    },
-  },
-});
-
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 
 root.render(
-  <QueryClientProvider client={queryClient}>
-    <App />
-  </QueryClientProvider>
+  <Sentry.ErrorBoundary fallback={<AppErrorFallback />}>
+    <QueryClientProvider client={queryClient}>
+      <App />
+      <Toaster />
+    </QueryClientProvider>
+  </Sentry.ErrorBoundary>
 );

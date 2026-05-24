@@ -99,17 +99,16 @@
 }
 
 .profile-modal-role {
-  background: rgba(91,141,239,.08);
-  color: var(--accent);
-  border: 1px solid rgba(91,141,239,.2);
+  background: rgba(20,184,166,.12);
+  color: #0d9488;
   padding: 2px 8px;
   border-radius: 6px;
   font-weight: 700;
   font-size: 11px;
 }
 .profile-modal-role.manager {
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-  color: var(--accent);
+  background: rgba(139,92,246,.12);
+  color: #7c3aed;
 }
 
 .profile-modal-team { color: var(--ink-3); }
@@ -195,6 +194,10 @@
 .profile-modal-status-row:last-child { border-bottom: none; }
 
 .profile-modal-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.profile-modal-status-dot--open        { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+.profile-modal-status-dot--assigned    { background: var(--accent); }
+.profile-modal-status-dot--in_review   { background: var(--accent); }
+.profile-modal-status-dot--completed   { background: var(--good); }
 .profile-modal-status-label { flex: 1; color: var(--ink-2); }
 .profile-modal-status-count { font-weight: 700; color: var(--ink); }
 

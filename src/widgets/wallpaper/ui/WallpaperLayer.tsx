@@ -1,60 +1,42 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect } from 'react';
+import type { WallpaperKind } from '@/shared/lib/wallpaper-state';
+import {
+  getWallpaper,
+  getCustomUrl,
+  getWallpaperUserId,
+  setWallpaperState,
+  subscribeWallpaper,
+} from '@/shared/lib/wallpaper-state';
 
-export type WallpaperKind = 'none' | 'aurora' | 'ocean' | 'meadow' | 'paper' | 'grid' | 'custom';
+export type { WallpaperKind } from '@/shared/lib/wallpaper-state';
+export { initWallpaper } from '@/shared/lib/wallpaper-state';
 
-export const WALLPAPERS: Record<WallpaperKind, string> = {
-  none:   'Без обоев',
-  aurora: 'Северное сияние',
-  ocean:  'Океан',
-  meadow: 'Луг',
-  paper:  'Бумага',
-  grid:   'Сетка',
-  custom: 'Своё фото',
-};
-
-// In-memory cache so WallpaperLayer and WallpaperPicker stay in sync
-let _wallpaper: WallpaperKind = 'none';
-let _customUrl = '';
-let _userId = 0;
-const _listeners: Array<() => void> = [];
-
-function notify() { _listeners.forEach(fn => fn()); }
-
-export function initWallpaper(kind: WallpaperKind, customUrl: string, userId: number) {
-  _wallpaper = kind;
-  _customUrl = customUrl;
-  _userId = userId;
-  notify();
-}
+export { getWallpaper, getCustomUrl } from '@/shared/lib/wallpaper-state';
 
 export async function setWallpaper(kind: WallpaperKind, customUrl?: string) {
-  _wallpaper = kind;
-  if (customUrl !== undefined) _customUrl = customUrl;
-  notify();
+  setWallpaperState(kind, customUrl);
   window.dispatchEvent(new CustomEvent('coop_wallpaper_changed'));
-  if (_userId > 0) {
+  const userId = getWallpaperUserId();
+  if (userId > 0) {
     try {
-      const { patchUserSettings } = await import('../../../api/dto/user/users.api');
-      await patchUserSettings(_userId, kind, _customUrl, document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
-    } catch {}
+      const { patchUserSettings } = await import('@/entities/user/api/users.api');
+      await patchUserSettings(userId, kind, getCustomUrl(), document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+    } catch { /* ignore */ }
   }
 }
 
-export function getWallpaper(): WallpaperKind { return _wallpaper; }
-export function getCustomUrl(): string { return _customUrl; }
-
 export function WallpaperLayer() {
-  const [wallpaper, setWp] = useState<WallpaperKind>(() => _wallpaper);
-  const [customUrl, setCustom] = useState(() => _customUrl);
+  const [wallpaper, setWp] = useState<WallpaperKind>(() => getWallpaper());
+  const [customUrl, setCustom] = useState(() => getCustomUrl());
 
   useEffect(() => {
-    const handler = () => { setWp(_wallpaper); setCustom(_customUrl); };
-    _listeners.push(handler);
-    const evHandler = () => { setWp(_wallpaper); setCustom(_customUrl); };
+    const handler = () => { setWp(getWallpaper()); setCustom(getCustomUrl()); };
+    const unsub = subscribeWallpaper(handler);
+    const evHandler = () => { setWp(getWallpaper()); setCustom(getCustomUrl()); };
     window.addEventListener('coop_wallpaper_changed', evHandler);
     return () => {
-      const idx = _listeners.indexOf(handler);
-      if (idx >= 0) _listeners.splice(idx, 1);
+      unsub();
       window.removeEventListener('coop_wallpaper_changed', evHandler);
     };
   }, []);

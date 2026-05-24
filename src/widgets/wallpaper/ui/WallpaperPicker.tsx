@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
-import { type WallpaperKind, WALLPAPERS, setWallpaper, getWallpaper, getCustomUrl } from './WallpaperLayer';
+import { type WallpaperKind, WALLPAPERS, getWallpaper, getCustomUrl } from '@/shared/lib/wallpaper-state';
+import { setWallpaper } from './WallpaperLayer';
 
 function WallpaperPreview({ kind, customUrl }: { kind: WallpaperKind; customUrl: string }) {
   if (kind === 'none') return <div style={{ width: '100%', height: '100%', background: 'var(--bg-sunk)' }} />;

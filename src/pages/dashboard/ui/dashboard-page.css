@@ -45,18 +45,19 @@
 }
 
 /* ===== ANALYTICS BUTTON ===== */
-.dash-analytics-btn {
-  background: rgba(91,141,239,.12);
+.dash-analytics-btn.btn {
+  background: var(--bg-elev);
   color: var(--accent);
-  border: 1px solid rgba(91,141,239,.25);
+  border: 1.5px solid var(--accent);
   border-radius: 8px;
   font-weight: 700;
   text-decoration: none;
-  transition: background var(--t-fast), border-color var(--t-fast);
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
 }
-.dash-analytics-btn:hover {
-  background: rgba(91,141,239,.2);
-  border-color: rgba(91,141,239,.45);
+.dash-analytics-btn.btn:hover {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
 }
 
 /* ===== HEADER ===== */
@@ -107,6 +108,8 @@
   justify-content: center;
   flex-shrink: 0;
 }
+.dash-kpi-icon--accent { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.dash-kpi-icon--good   { background: color-mix(in srgb, var(--good)   10%, transparent); }
 
 .dash-kpi-text {
   display: flex;
@@ -237,6 +240,7 @@
   justify-content: center;
   flex-shrink: 0;
 }
+.dash-card-icon--accent { background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
 .dash-card-title {
   font-size: 13px;
@@ -333,6 +337,7 @@
   justify-content: center;
   flex-shrink: 0;
   font-size: 11px;
+  color: rgba(0,0,0,.6);
 }
 
 .dash-task-card-team-name {
@@ -410,13 +415,11 @@
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
-  background: rgba(91,141,239,.12);
-  color: var(--accent);
 }
-.dash-task-chip--open      { background: rgba(91,141,239,.08);      color: var(--accent); }
-.dash-task-chip--assigned  { background: rgba(91,141,239,.12);      color: var(--accent); }
-.dash-task-chip--in_review { background: rgba(91,141,239,.12);     color: var(--accent); }
-.dash-task-chip--completed { background: rgba(34,197,94,.12);      color: var(--good); }
+.dash-task-chip--open      { background: rgba(107,112,128,.10); color: #6b7080; }
+.dash-task-chip--assigned  { background: rgba(91,141,239,.12);  color: var(--accent); }
+.dash-task-chip--in_review { background: rgba(245,158,11,.12);  color: #b45309; }
+.dash-task-chip--completed { background: rgba(74,138,91,.12);   color: var(--good); }
 
 /* ===== ACTIVITY CHART ===== */
 .dash-chart {
@@ -513,8 +516,8 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: rgba(91,141,239,.06);
-  border: 1px solid rgba(91,141,239,.18);
+  background: var(--bg-elev);
+  border: 1.5px solid rgba(91,141,239,.45);
   border-radius: var(--r);
   cursor: pointer;
   transition: border-color var(--t-fast), background var(--t-fast), transform var(--t-fast);
@@ -523,8 +526,8 @@
   width: 100%;
 }
 .dash-team-item:hover {
-  border-color: rgba(91,141,239,.35);
-  background: rgba(91,141,239,.1);
+  border-color: rgba(91,141,239,.75);
+  background: rgba(91,141,239,.04);
   transform: translateX(2px);
 }
 
@@ -537,6 +540,7 @@
   justify-content: center;
   flex-shrink: 0;
   font-size: 14px;
+  color: rgba(0,0,0,.6);
 }
 
 .dash-team-name {
@@ -558,8 +562,8 @@
   font-weight: 700;
   flex-shrink: 0;
 }
-.dash-team-role-badge.manager { background: rgba(91,141,239,.13); color: var(--accent); }
-.dash-team-role-badge.member  { background: rgba(91,141,239,.08); color: var(--accent); }
+.dash-team-role-badge.manager { background: rgba(139,92,246,.12);  color: #7c3aed; }
+.dash-team-role-badge.member  { background: rgba(20,184,166,.12);  color: #0d9488; }
 
 /* ===== AUTH LOADING ===== */
 .auth-loading {

@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
+    host: true,
     open: false,
     allowedHosts: true,
     // Добавляем проксирование для API запросов

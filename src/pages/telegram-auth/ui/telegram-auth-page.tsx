@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { TELEGRAM_MINI_APP_CLOSE_DELAY_MS } from '@/shared/lib/constants';
 import './telegram-auth-page.css';
 
 type AuthState =
@@ -43,6 +44,7 @@ export const TelegramAuthPage: React.FC = () => {
   useEffect(() => {
     const webApp = window.Telegram?.WebApp;
     if (!webApp) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState({ status: 'error', message: 'Откройте приложение через Telegram' });
       return;
     }
@@ -62,7 +64,7 @@ export const TelegramAuthPage: React.FC = () => {
     const webApp = window.Telegram?.WebApp;
     if (webApp) {
       webApp.openLink(url);
-      setTimeout(() => webApp.close(), 800);
+      setTimeout(() => webApp.close(), TELEGRAM_MINI_APP_CLOSE_DELAY_MS);
     } else {
       window.location.href = url;
     }

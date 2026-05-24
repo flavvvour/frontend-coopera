@@ -1,33 +1,40 @@
 import React from 'react';
 import './login-page.css';
 
+function TelegramIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2.491 11.74 18.51 5.64c.635-.232 1.189.155.983 1.118l-2.19 10.32c-.162.73-.594.906-1.205.563l-3.28-2.418-1.584 1.524c-.175.175-.322.322-.66.322l.236-3.338 6.077-5.49c.264-.234-.058-.364-.41-.13L4.128 13.887l-3.22-.998c-.7-.22-.714-.7.147-1.035z" fill="currentColor"/>
+    </svg>
+  );
+}
+
 export const LoginPage: React.FC = () => {
   const botName = import.meta.env.VITE_TELEGRAM_BOT_NAME;
 
   return (
     <div className="login-page">
-      <div className="login-container">
+      <div className="login-bg" aria-hidden>
+        <div className="login-blob login-blob--1" />
+        <div className="login-blob login-blob--2" />
+        <div className="login-blob login-blob--3" />
+        <div className="login-blob login-blob--4" />
+      </div>
+      <div className="login-container pop-in">
         <div className="login-card">
           <div className="login-logo">
-            Coopera
+            Coopera<span className="login-logo-dot">.</span>
           </div>
-          <div className="login-header">
-            <h1>Добро пожаловать!</h1>
-            <p>Войдите через Telegram, чтобы начать работу с командой</p>
-            <button
-              className="telegram-login-btn"
-              onClick={() => {
-                window.location.href = `https://t.me/${botName}?start=login`;
-              }}
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295l.213-3.054 5.56-5.022c-.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" />
-              </svg>
-              Войти через Telegram
-            </button>
-          </div>
+          <h1 className="login-title">Добро пожаловать!</h1>
+          <p className="login-sub">Войдите через Telegram, чтобы начать работу с командой</p>
+          <button
+            className="login-tg-btn"
+            onClick={() => { window.location.href = `https://t.me/${botName}?start=login`; }}
+          >
+            <TelegramIcon size={22} />
+            Войти через Telegram
+          </button>
         </div>
-        <div className="login-footer">© 2026 Университет им. Н.И. Лобачевского</div>
       </div>
     </div>
   );

@@ -20,6 +20,13 @@
   --line-soft: #eef3fc;
 }
 
+[data-theme="dark"] .sidebar {
+  --ink-2: #8a9bb8;
+  --ink-3: #566278;
+  --line: #243044;
+  --line-soft: #1b2535;
+}
+
 .sidebar--collapsed {
   width: 64px;
 }
@@ -242,6 +249,7 @@
   min-width: 0;
 }
 .sidebar-nav-item:hover { background: rgba(91,141,239,.08); color: var(--ink); }
+.sidebar-nav-item--disabled { opacity: .35; cursor: default; pointer-events: none; }
 .sidebar-nav-item.active {
   background: var(--accent-soft);
   color: var(--accent-deep);

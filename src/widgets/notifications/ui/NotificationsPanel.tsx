@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { X, Bell, CheckCheck } from 'lucide-react';
-import { getActivity, createActivity, markAllActivityRead, markSingleActivityRead, deleteAllActivity } from '@/api/dto/activity/activity.api';
-import type { ActivityEntryDTO } from '@/api/dto/activity/activity.types';
+import { Skeleton } from '@/shared/ui/Skeleton';
+import { markAllActivityRead, markSingleActivityRead, deleteAllActivity } from '@/entities/activity';
+import type { ActivityEntryDTO } from '@/entities/activity';
+import { useHookGetActivity } from '@/entities/activity';
+import { useAuthStore } from '@/shared/store';
 import './notifications-panel.css';
 
 export interface ActivityEntry {
@@ -27,27 +30,6 @@ function timeAgo(ms: number): string {
   const d = Math.floor(h / 24);
   if (d < 7) return `${d} дн назад`;
   return new Date(ms).toLocaleDateString('ru', { day: 'numeric', month: 'short' });
-}
-
-function getUserId(): number {
-  const stored = sessionStorage.getItem('user_id');
-  return stored ? parseInt(stored, 10) : 0;
-}
-
-export function addActivity(entry: Omit<ActivityEntry, 'id' | 'timestamp' | 'read'>) {
-  const userId = getUserId();
-  if (userId <= 0) return;
-  createActivity({
-    user_id: userId,
-    team_id: entry.teamId,
-    team_emoji: entry.teamEmoji,
-    team_color: entry.teamColor,
-    type: entry.type,
-    title: entry.title,
-    detail: entry.detail,
-  }).then(() => {
-    window.dispatchEvent(new CustomEvent('coop_activity_updated'));
-  }).catch(() => {});
 }
 
 function mapDTOToEntry(dto: ActivityEntryDTO): ActivityEntry {
@@ -89,7 +71,7 @@ interface ParsedDetail {
   rest?: string;
 }
 
-function parseDetail(detail: string, type: ActivityEntry['type']): ParsedDetail {
+function parseDetail(detail: string, _type: ActivityEntry['type']): ParsedDetail {
   const parts = detail.split('·').map(s => s.trim());
   let actor: string | undefined;
   let team: string | undefined;
@@ -139,8 +121,6 @@ function NotifAvatar({ name, palette, size = 20, userId, teamId }: { name: strin
     </span>
   );
 }
-
-type IconSpec = { icon: React.ReactNode; colorClass: string };
 
 type TypeBadge = { label: string; cls: string };
 
@@ -194,59 +174,41 @@ interface NotificationsPanelProps {
 }
 
 export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose }) => {
-  const [localActivity, setLocalActivity] = useState<ActivityEntry[]>([]);
-  const [activityLoading, setActivityLoading] = useState(false);
+  const storedUserId = useAuthStore(s => s.userId);
+  const currentUserId = storedUserId ? parseInt(storedUserId, 10) : 0;
+  const { data: rawActivity, loading: activityLoading, refetch } = useHookGetActivity(currentUserId);
+  const [localOverrides, setLocalOverrides] = useState<Record<string, boolean>>({});
 
-  const loadActivity = async () => {
-    const userId = getUserId();
-    if (userId <= 0) return;
-    setActivityLoading(true);
-    try {
-      const entries = await getActivity(userId);
-      setLocalActivity(entries.map(mapDTOToEntry));
-    } catch {
-      setLocalActivity([]);
-    } finally {
-      setActivityLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadActivity();
-    const handler = (e: Event) => {
-      if ((e as CustomEvent).detail?.source === 'mark_read') return;
-      loadActivity();
-    };
-    window.addEventListener('coop_activity_updated', handler);
-    return () => window.removeEventListener('coop_activity_updated', handler);
-  }, []);
+  const localActivity: ActivityEntry[] = (rawActivity ?? []).map(dto => ({
+    ...mapDTOToEntry(dto),
+    read: localOverrides[String(dto.id)] ?? dto.is_read,
+  }));
 
   const markAllRead = async () => {
-    const userId = getUserId();
-    if (userId <= 0) return;
+    if (currentUserId <= 0) return;
     try {
-      await markAllActivityRead(userId);
-      setLocalActivity(prev => prev.map(a => ({ ...a, read: true })));
-      window.dispatchEvent(new CustomEvent('coop_activity_updated', { detail: { source: 'mark_read' } }));
-    } catch { /* empty */ }
+      await markAllActivityRead(currentUserId);
+      const overrides: Record<string, boolean> = {};
+      localActivity.forEach(a => { overrides[a.id] = true; });
+      setLocalOverrides(overrides);
+      void refetch();
+    } catch { /* ignore */ }
   };
 
   const handleItemClick = async (item: ActivityEntry) => {
     if (item.read) return;
-    const userId = getUserId();
-    if (userId <= 0) return;
-    setLocalActivity(prev => prev.map(a => a.id === item.id ? { ...a, read: true } : a));
-    markSingleActivityRead(parseInt(item.id, 10), userId).catch(() => {});
-    window.dispatchEvent(new CustomEvent('coop_activity_updated', { detail: { source: 'mark_read' } }));
+    if (currentUserId <= 0) return;
+    setLocalOverrides(prev => ({ ...prev, [item.id]: true }));
+    markSingleActivityRead(parseInt(item.id, 10), currentUserId).catch(() => { /* ignore */ });
   };
 
   const clearAll = async () => {
-    const userId = getUserId();
-    if (userId <= 0) return;
+    if (currentUserId <= 0) return;
     try {
-      await deleteAllActivity(userId);
-      setLocalActivity([]);
-    } catch { /* empty */ }
+      await deleteAllActivity(currentUserId);
+      setLocalOverrides({});
+      void refetch();
+    } catch { /* ignore */ }
   };
 
   const allActivity = [...localActivity]
@@ -283,9 +245,8 @@ export const NotificationsPanel: React.FC<NotificationsPanelProps> = ({ onClose 
         {/* Body */}
         <div className="notif-body">
           {activityLoading && (
-            <div className="notif-loading">
-              <div className="notif-spinner" />
-              <span>Загрузка...</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 12px' }}>
+              {[0,1,2,3].map(i => <Skeleton key={i} height={56} borderRadius="var(--r-sm)" />)}
             </div>
           )}
 

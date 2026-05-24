@@ -2,56 +2,124 @@
 
 .login-page {
   min-height: 100vh;
-  background: var(--bg);
+  background: #eef6ff;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
+.login-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.login-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: .6;
+}
+
+.login-blob--1 {
+  width: 560px; height: 560px;
+  background: radial-gradient(circle, rgba(147,200,255,1) 0%, rgba(91,162,255,.5) 55%, transparent 75%);
+  top: -180px; left: -120px;
+  animation: lb1 14s ease-in-out infinite alternate;
+}
+.login-blob--2 {
+  width: 480px; height: 480px;
+  background: radial-gradient(circle, rgba(190,225,255,1) 0%, rgba(120,185,255,.5) 55%, transparent 75%);
+  bottom: -140px; right: -100px;
+  animation: lb2 18s ease-in-out infinite alternate;
+}
+.login-blob--3 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(215,238,255,1) 0%, rgba(160,210,255,.5) 55%, transparent 75%);
+  top: 35%; right: -60px;
+  animation: lb3 11s ease-in-out infinite alternate;
+}
+.login-blob--4 {
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(200,232,255,1) 0%, rgba(100,175,255,.45) 55%, transparent 75%);
+  bottom: 10%; left: 5%;
+  animation: lb4 16s ease-in-out infinite alternate;
+}
+
+@keyframes lb1 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(90px, 110px); }
+}
+@keyframes lb2 {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-70px, -90px); }
+}
+@keyframes lb3 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(-80px, 60px) scale(1.15); }
+}
+@keyframes lb4 {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(60px, -70px) scale(1.1); }
+}
+
+/* Container + Card */
 .login-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 400px;
-  animation: pop-in .4s ease both;
+  max-width: 520px;
 }
 
 .login-card {
-  background: var(--bg-elev);
-  border: 1px solid var(--line-soft);
+  background: rgba(255,255,255,.72);
+  border: 1px solid rgba(255,255,255,.9);
   border-radius: var(--r-xl);
-  box-shadow: var(--shadow-lg);
-  padding: 40px 36px;
+  box-shadow: 0 12px 60px rgba(91,141,239,.18), 0 2px 12px rgba(91,141,239,.08), inset 0 1px 0 rgba(255,255,255,.95);
+  padding: 64px 56px 56px;
   text-align: center;
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .login-logo {
-  font-size: 24px;
+  font-size: 30px;
   font-weight: 800;
   color: var(--ink);
-  letter-spacing: -.03em;
-  margin: 0 0 32px;
+  letter-spacing: -.05em;
+  margin-bottom: 44px;
   font-family: var(--font-sans);
 }
 
-.login-logo span { color: var(--accent); }
+.login-logo-dot { color: var(--accent); }
 
-.login-header h1 {
-  font-size: 22px;
+.login-title {
+  font-size: 34px;
   font-weight: 800;
   color: var(--ink);
-  letter-spacing: -.02em;
-  margin: 0 0 8px;
+  letter-spacing: -.03em;
+  margin: 0 0 14px;
+  line-height: 1.15;
+  font-family: var(--font-sans);
 }
 
-.login-header p {
-  font-size: 14px;
-  color: var(--ink-3);
-  margin: 0 0 28px;
-  line-height: 1.6;
+.login-sub {
+  font-size: 17px;
+  color: var(--ink-2);
+  margin: 0 0 40px;
+  line-height: 1.65;
+  font-family: var(--font-sans);
+  max-width: 340px;
 }
 
-.telegram-login-btn {
+.login-tg-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,28 +129,33 @@
   color: #fff;
   border: none;
   border-radius: 999px;
-  padding: 14px 24px;
-  font-size: 15px;
+  padding: 17px 32px;
+  font-size: 17px;
   font-weight: 700;
   font-family: var(--font-sans);
   cursor: pointer;
-  transition: background var(--t-fast), transform var(--t-fast), box-shadow var(--t-fast);
+  transition: background var(--t-fast);
+  margin-bottom: 18px;
 }
 
-.telegram-login-btn:hover {
+.login-tg-btn:hover {
   background: var(--accent-deep);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
 }
 
-.login-footer {
-  margin-top: 20px;
-  font-size: 12px;
+.login-tg-btn svg {
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+}
+
+.login-tg-btn:hover svg {
+  transform: translateX(3px);
+}
+
+.login-hint {
+  font-size: 14px;
   color: var(--ink-3);
-  text-align: center;
+  font-family: var(--font-sans);
+  margin: 0;
 }
 
-/* ===== RECT (legacy button icon container) ===== */
-.rect {
-  display: none;
-}
+.rect { display: none; }

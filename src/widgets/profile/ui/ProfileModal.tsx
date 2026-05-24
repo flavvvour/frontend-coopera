@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
-import type { Task } from '@/domain/task.types';
+import type { Task } from '@/entities/task';
 import './profile-modal.css';
 
 const MEMBER_COLORS = [
@@ -10,9 +10,6 @@ function memberColor(id: number) { return MEMBER_COLORS[id % MEMBER_COLORS.lengt
 
 const STATUS_LABELS: Record<string, string> = {
   open: 'Бэклог', assigned: 'В работе', in_review: 'На проверке', completed: 'Выполнено',
-};
-const STATUS_COLORS: Record<string, string> = {
-  open: 'rgba(91,141,239,.4)', assigned: 'var(--accent)', in_review: 'var(--accent)', completed: 'var(--good)',
 };
 
 interface ProfileModalProps {
@@ -107,7 +104,7 @@ export function ProfileModal({ memberId, userId, memberUsername, teamName, membe
               <div className="profile-modal-status-list">
                 {(['open','assigned','in_review','completed'] as const).map(s => (
                   <div key={s} className="profile-modal-status-row">
-                    <span className="profile-modal-status-dot" style={{ background: STATUS_COLORS[s] }} />
+                    <span className={`profile-modal-status-dot profile-modal-status-dot--${s}`} />
                     <span className="profile-modal-status-label">{STATUS_LABELS[s]}</span>
                     <span className="mono profile-modal-status-count">{statusCounts[s] ?? 0}</span>
                   </div>

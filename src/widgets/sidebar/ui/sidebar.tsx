@@ -1,22 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useHookGetUser } from '@/hooks/useHookGetUser';
-import { CreateTeamModal, TeamIcon } from '@/components/User/CreateTeamModal';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useHookGetUser } from '@/entities/user';
+import { Skeleton } from '@/shared/ui/Skeleton';
+import { CreateTeamModal } from '@/features/create-team';
+import { TeamIcon } from '@/shared/ui/team-icon';
 import {
   LayoutDashboard, KanbanSquare, BarChart2, Users, Zap, UsersRound,
   Plus, Bell, ChevronRight, ChevronLeft, Sun, Moon,
-  LogOut, ChevronDown, Check, Star, PlusCircle, Image, X, Copy
+  LogOut, ChevronDown, Check, PlusCircle
 } from 'lucide-react';
-import { WallpaperPicker, initWallpaper } from '@/widgets/wallpaper';
-import type { WallpaperKind } from '@/widgets/wallpaper';
-import { patchUserSettings } from '@/api/dto/user/users.api';
+import { patchUserSettings } from '@/entities/user';
+import { useAuthStore, useUiStore } from '@/shared/store';
+import { getTeamEmoji } from '@/shared/lib/team-emoji';
 import './sidebar.css';
-
-function encodeInviteCode(teamId: number): string {
-  return teamId.toString(36).toUpperCase().padStart(6, '0');
-}
-
-const TEAM_EMOJIS = ['📚','🌱','🏠','🔧','🎨','🎓','💡','🌍','🤝','🎯','⚽','🎬'];
 
 interface SidebarProps {
   onCollapseChange?: (collapsed: boolean) => void;
@@ -25,14 +21,6 @@ interface SidebarProps {
   notificationCount?: number;
 }
 
-function getTeamEmoji(name: string) {
-  const n = name.toLowerCase();
-  if (n.includes('курс') || n.includes('диплом') || n.includes('вкр')) return '📚';
-  if (n.includes('дом') || n.includes('сосед') || n.includes('ремонт')) return '🏠';
-  if (n.includes('волонтер') || n.includes('помощь')) return '🤝';
-  if (n.includes('спорт') || n.includes('футбол')) return '⚽';
-  return '👥';
-}
 
 function getTeamDisplay(emoji: string | undefined, color: string | undefined, name: string) {
   return {
@@ -55,7 +43,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [dark, setDark] = useState(() => document.documentElement.getAttribute('data-theme') === 'dark');
   const [teamMenuOpen, setTeamMenuOpen] = useState(false);
   const [photoFailed, setPhotoFailed] = useState(false);
-  const [wpPickerOpen, setWpPickerOpen] = useState(false);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
 
@@ -63,34 +50,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate();
   const teamMenuRef = useRef<HTMLDivElement>(null);
 
-  const username = sessionStorage.getItem('username') ?? '';
-  const { data: user, refetch: refetchUser } = useHookGetUser(username);
+  const username = useAuthStore(s => s.username) ?? '';
+  const clearAuth = useAuthStore(s => s.clear);
+  const activeTeamId = useUiStore(s => s.activeTeamId);
+  const setActiveTeamId = useUiStore(s => s.setActiveTeamId);
+  const { data: user, loading: userLoading } = useHookGetUser(username);
 
-  useEffect(() => {
-    const handler = () => refetchUser();
-    window.addEventListener('coop_team_created', handler);
-    window.addEventListener('coop_teams_updated', handler);
-    return () => {
-      window.removeEventListener('coop_team_created', handler);
-      window.removeEventListener('coop_teams_updated', handler);
-    };
-  }, []);
-
-  // extract teamId from URL if present; persist last visited team
   const teamIdMatch = location.pathname.match(/\/dashboard\/teams\/(\d+)/);
   const urlTeamId = teamIdMatch ? Number(teamIdMatch[1]) : null;
 
   useEffect(() => {
-    if (urlTeamId) sessionStorage.setItem('coop_last_team', String(urlTeamId));
-  }, [urlTeamId]);
+    if (urlTeamId) setActiveTeamId(String(urlTeamId));
+  }, [urlTeamId, setActiveTeamId]);
 
-  const savedTeamId = (() => {
-    const s = sessionStorage.getItem('coop_last_team');
-    return s ? Number(s) : null;
-  })();
-
-  const activeTeamId = urlTeamId ?? savedTeamId;
-  const activeTeam = user?.teams.find(t => t.id === activeTeamId) ?? user?.teams[0] ?? null;
+  const resolvedTeamId = urlTeamId ?? (activeTeamId ? Number(activeTeamId) : null);
+  const activeTeam = user?.teams.find(t => t.id === resolvedTeamId) ?? user?.teams[0] ?? null;
 
   // Initialize theme and wallpaper from user data when it loads
   useEffect(() => {
@@ -99,8 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     const userTheme = user.theme === 'dark' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', userTheme);
     setDark(userTheme === 'dark');
-    // Init wallpaper from user settings
-    initWallpaper(user.wallpaper as WallpaperKind || 'none', user.wallpaperCustomUrl || '', user.id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   // Apply theme changes to DOM
@@ -112,7 +85,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   useEffect(() => {
     if (!user) return;
     patchUserSettings(user.id, user.wallpaper || 'none', user.wallpaperCustomUrl || '', dark ? 'dark' : 'light').catch(() => {});
-  }, [dark]);
+  }, [dark, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -133,10 +106,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = [
     { id: 'dashboard',  label: 'Главная',           Icon: LayoutDashboard, path: '/dashboard' },
     { id: 'teams',      label: 'Команды',            Icon: UsersRound,      path: '/dashboard/teams' },
-    { id: 'kanban',     label: 'Канбан',             Icon: KanbanSquare,    path: activeTeam ? `/dashboard/teams/${activeTeam.id}` : '/dashboard/teams' },
+    { id: 'kanban',     label: 'Канбан',             Icon: KanbanSquare,    path: activeTeam ? `/dashboard/teams/${activeTeam.id}` : null },
     { id: 'analytics',  label: 'Аналитика',          Icon: BarChart2,       path: '/dashboard/statistics' },
-    { id: 'team',       label: 'Участники',          Icon: Users,           path: activeTeam ? `/dashboard/teams/${activeTeam.id}?tab=members` : '/dashboard/teams' },
-    { id: 'autoassign', label: 'Автораспределение',  Icon: Zap,             path: activeTeam ? `/dashboard/teams/${activeTeam.id}?tab=autoassign` : '/dashboard/teams' },
+    { id: 'team',       label: 'Участники',          Icon: Users,           path: activeTeam ? `/dashboard/teams/${activeTeam.id}?tab=members` : null },
+    { id: 'autoassign', label: 'Автораспределение',  Icon: Zap,             path: activeTeam ? `/dashboard/teams/${activeTeam.id}?tab=autoassign` : null },
   ];
 
   const isActive = (path: string) => {
@@ -150,11 +123,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('username');
-    sessionStorage.removeItem('telegram_id');
-    sessionStorage.removeItem('photo_url');
-    sessionStorage.removeItem('user_id');
-    sessionStorage.removeItem('coop_last_team');
+    clearAuth();
+    setActiveTeamId(null);
     navigate('/');
   };
 
@@ -207,7 +177,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {teamMenuOpen && (
           <div className="sidebar-team-menu pop-in">
             <div className="sidebar-team-menu-label">ваши команды</div>
-            {(user?.teams ?? []).map(t => (
+            {userLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '0 8px' }}>
+                {[0, 1, 2].map(i => <Skeleton key={i} height={36} borderRadius="var(--r-sm)" />)}
+              </div>
+            ) : (user?.teams ?? []).map(t => (
               <button
                 key={t.id}
                 className={`sidebar-team-item ${t.id === activeTeam?.id ? 'active' : ''}`}
@@ -235,7 +209,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Nav */}
       <nav className="sidebar-nav">
         {navItems.map(({ id, label, Icon, path }) => {
-          const active = isActive(path);
+          const active = path ? isActive(path) : false;
+          const disabled = path === null;
+          if (disabled) {
+            return (
+              <span
+                key={id}
+                className="sidebar-nav-item sidebar-nav-item--disabled"
+                title={collapsed ? label : ''}
+              >
+                <Icon size={18} className="sidebar-nav-icon" />
+                {!collapsed && <span>{label}</span>}
+              </span>
+            );
+          }
           return (
             <Link
               key={id}
@@ -274,7 +261,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Footer: user + theme */}
       <div className="sidebar-footer" style={{ position: 'relative' }}>
-        {wpPickerOpen && <WallpaperPicker onClose={() => setWpPickerOpen(false)} />}
         <div className="sidebar-user" title={collapsed ? (user?.username ?? '') : ''}>
           <div className="sidebar-user-avatar" style={{ background: 'var(--accent)' }}>
             {user?.id && !photoFailed
@@ -291,13 +277,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="sidebar-footer-btns">
-          <button
-            className="sidebar-icon-btn"
-            onClick={() => setWpPickerOpen(v => !v)}
-            title="Обои"
-          >
-            <Image size={16} />
-          </button>
           <button
             className="sidebar-icon-btn"
             onClick={() => setDark(v => !v)}

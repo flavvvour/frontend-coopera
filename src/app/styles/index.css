@@ -240,6 +240,19 @@ button, input, textarea, select {
 .pop-in    { animation: pop-in .22s ease both; }
 .sheet-in  { animation: sheet-in .22s ease both; }
 
+/* ===== SKELETON LOADER ===== */
+.skeleton {
+  background: linear-gradient(90deg, var(--line) 25%, color-mix(in srgb, var(--line) 60%, var(--bg)) 50%, var(--line) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  flex-shrink: 0;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ===== WALLPAPER LAYER ===== */
 .wp-layer { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .wp-veil { position: absolute; inset: 0; background: var(--bg); opacity: .12; }
